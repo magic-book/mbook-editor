@@ -2,7 +2,7 @@ ELECTRON_PACKAGER = ./node_modules/.bin/electron-packager
 BUILD_IGNORE = ./node_modules/.npminstall
 
 UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
+ifeq ($(UNAME_S), Darwin)
 	PLATFORM = darwin
 else
 	ifeq ($(UNAME_S),Linux)
@@ -13,15 +13,18 @@ else
 endif
 
 UNAME_M := $(shell uname -m)
-ifeq ($(UNAME_M),x86_64)
+ifeq ($(UNAME_M), x86_64)
 	ARCH = x64
 else
-	ifeq ($(UNAME_M),x86)
+	ifeq ($(UNAME_M), x86)
 		ARCH = ia32
 	else
 		ARCH = unknow
 	endif
 endif
+
+install:
+	@npm install
 
 #TODO: icon and ignore files
 release:
@@ -30,4 +33,4 @@ release:
 test:
 	@./node_modules/.bin/mocha --recursive -r should test
 
-.PHONY: test release
+.PHONY: test release install

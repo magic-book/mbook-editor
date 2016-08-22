@@ -1,4 +1,6 @@
+# common file
 /node_modules
+.DS_Store
 
 # Build
 /release

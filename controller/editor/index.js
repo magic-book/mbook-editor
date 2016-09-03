@@ -8,6 +8,7 @@ const $ = require('jquery');
 const co = require('co');
 const view = require('../../lib/view');
 const log = require('../../lib/log');
+const BookRes = require('../../lib/book_file.js');
 
 const Book = require('../../model/data/book');
 const Menu = require('../../model/ui/menu');
@@ -59,6 +60,9 @@ class AppEditor {
     });
     this.editor = editor;
 
+    let bookres = new BookRes(option.bookRoot);
+    this.bookres = bookres;
+
     /**
      * preview
      * @type {Preview}
@@ -105,6 +109,17 @@ class AppEditor {
       console.log(e);
       console.log(clipboard.availableFormats());
       console.log(clipboard.readText());
+      
+      if (clipboard.availableFormats().lastIndexOf('image/png') != -1) {
+        co(function *() {
+          let cursor = self.editor.editor.getCursor();
+          let path = yield self.bookres.saveImage(self.editor.currentTab.file,clipboard.readImage());
+          self.editor.paste('![](' + path + ')', cursor);
+        }).catch(function(e) {
+          console.log(e.stack);
+          log.error('save image to local error', e);
+        });
+      }
     });
   }
   * load() {

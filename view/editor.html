@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="../node_modules/codemirror/lib/codemirror.css" />
+<link rel="stylesheet" href="../node_modules/codemirror/theme/base16-light.css"/>
 <style type="text/css">
     .main {
         width: 100%;
@@ -9,13 +10,12 @@
         width: 15%;
         height: 100%;
         vertical-align: top;
-        background: #444;
-        border-right: 1px solid #ddd;
+        background: #69686A;
     }
     .editor {
         width: 40%;
         vertical-align: top;
-        border-right: 1px solid #ddd;
+        padding: 0px;
     }
     .editor .inner {
         margin:0px;
@@ -46,7 +46,7 @@
         display: block;
         color: #fff;
         padding: 0px 5px;
-        line-height: 190%;
+        line-height: 150%;
         text-decoration: none;
     }
     .trewview a:hover{
@@ -76,6 +76,17 @@
     .CodeMirror {
         height: 100%;
         overflow: hidden;
+    }
+
+    .cm-header-1 {font-size: 1.6em;}
+    .cm-header-2 {font-size: 1.4em;}
+    .cm-header-3 {font-size: 1.2em;}
+    .cm-header-4 {font-size: 1.1em;}
+    .cm-header-5 {font-size: 1.05em;}
+    .cm-header-6 {font-size: 1em;}
+    .cm-quote {color: #90a959;}
+    .CodeMirror-activeline-background {
+        background: rgb(239, 239, 241);
     }
 </style>
 

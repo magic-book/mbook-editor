@@ -42,7 +42,13 @@ app.on('quit', function () {
 app.on('ready', function () {
   let base = __dirname;
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600});
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    // titleBarStyle: 'hidden-inset',
+    // frame: false,
+    // transparent: true
+  });
 
 
   // and load the index.html of the app.

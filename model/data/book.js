@@ -34,6 +34,7 @@ class Book extends EventEmitter {
   * saveFile(file, data) {
     let fpath = path.join(this.root, file);
     console.log('---', fpath);
+    yield fsp.mkdirs(path.dirname(fpath));
     yield fsp.writeFile(fpath, data);
   }
   parse(tokens) {

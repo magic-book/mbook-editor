@@ -1,6 +1,7 @@
 'use strict';
 
 const $ = require('jquery');
+const log = require('../../lib/log');
 
 function nextLevel(name) {
   let n = name[name.length - 1];
@@ -35,22 +36,21 @@ class Menu extends UIBase {
     this.cnt = menuList;
 
     editBtn.on('click', function () {
-      let id = this.dataset.id;
-      self.emit('open_file', id);
+      let file = this.dataset.id;
+      self.emit('open_file', 'menu', file);
     });
 
     menuList.on('click', function (e) {
-      console.log('>>>>> click', e);
       if (e.which !== 1) {
-        // console.log('>>>>>', e.which);
+        log.warn('menu right click');
         return;
       }
-      let id = e.target.dataset.id;
-      if (!id) {
-        // console.log('empty node');
+      let file = e.target.dataset.id;
+      if (!file) {
+        log.warn('empty node');
         return;
       }
-      self.emit('open_file', id);
+      self.emit('open_file', $(e.target).text(), file);
     });
 
     menuList.on('mousedown', 'a', function (e) {

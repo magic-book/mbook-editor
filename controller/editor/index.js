@@ -70,8 +70,11 @@ class AppEditor {
     this.preview = preview;
 
 
-    this.menu.on('open_file', function (file) {
-      editor.createTab(file);
+    this.menu.on('open_file', function (title, file) {
+      editor.createTab({
+        file: file,
+        title: title
+      });
     });
 
 

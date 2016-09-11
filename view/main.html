@@ -7,16 +7,29 @@
         body {
           padding: 0px;
           margin: 0px;
-          font-family: 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'Helvetica', 'STHeitiSC-Light', 'Arial', sans-serif;
+          font-family: 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
+          font-size: 14px;
+          overflow: hidden;
+        }
+        ::-webkit-scrollbar-thumb {
+          display: none;
+        }
+        .dragable {
+          -webkit-app-region:drag;
+          -webkit-user-select: none;
         }
       </style>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
-  <body></body>
+  <body>
+
+  </body>
   <script type="text/javascript">
     'use strict';
     (function () {
-      let log = require('electron').remote.app.log;
+      const {ipcRenderer} = require('electron');
+      const remote = require('electron').remote;
+      const log = remote.app.log;
       let lastApp;
       function router() {
         let hash = location.hash.substr(2);
@@ -37,6 +50,9 @@
         let Controller = require(path.join(__dirname, '../controller', router.pathname));
         lastApp = new Controller(router.query);
         lastApp.resize && lastApp.resize();
+        lastApp.on('scene', function (data) {
+          ipcRenderer.sendSync('scene', data);
+        });
       }
       window.addEventListener('resize', function () {
         // let w = window.document.documentElement.clientWidth;
@@ -47,6 +63,27 @@
         log.debug('hashchange');
         router();
       }, false);
+      window.addEventListener('keydown', function (e) {
+        if (!e.metaKey && !e.ctrlKey) {
+          return;
+        }
+        if (e.keyCode !== 73) {
+          return;
+        }
+        ipcRenderer.sendSync('devtools');
+      });
+
+      window.action_close = function () {
+        let win = remote.BrowserWindow.getFocusedWindow();
+        win.close();
+      };
+      window.action_min = function () {
+        ipcRenderer.sendSync('win_min');
+      };
+      window.action_max = function () {
+        ipcRenderer.sendSync('win_max');
+      };
+
       log.debug('init default app');
       router();
     })();

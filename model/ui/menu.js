@@ -29,7 +29,7 @@ class Menu extends UIBase {
     super();
     let self = this;
     this.book = option.book;
-    option.container.html('<div><a class="btn_edit" data-id="/SUMMARY.md">编辑目录</a></div><div class="bookmenu"></div>');
+    option.container.find('.trewview').html('<div><a class="btn_edit" data-id="/SUMMARY.md">编辑目录</a></div><div class="bookmenu"></div>');
     let editBtn = option.container.find('.btn_edit');
     let menuList = option.container.find('.bookmenu');
 
@@ -111,7 +111,7 @@ class Menu extends UIBase {
     });
   }
   * render() {
-    let data = yield this.book.loadMenu();
+    let data = yield this.book.menu.load();
     this.cnt.html(this.genHTML(data));
   }
   /**

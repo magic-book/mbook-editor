@@ -1,14 +1,10 @@
 'use strict';
 
-require('jstree');
-require('ace-builds/src/ace');
-require('ace-builds/src/mode-markdown');
-
 const $ = require('jquery');
 const co = require('co');
 const view = require('../../lib/view');
 const log = require('../../lib/log');
-
+const BaseCtrl = require('../base_controller');
 const Book = require('../../model/data/book');
 const Menu = require('../../model/ui/menu');
 const Editor = require('../../model/ui/editor');
@@ -17,8 +13,13 @@ const Preview = require('../../model/ui/preview');
 const clipboard = require('electron').clipboard;
 const {BrowserWindow} = require('electron').remote;
 
-class AppEditor {
+class AppEditor extends BaseCtrl {
+  /**
+   * @param  {Object} options
+   *         - bookRoot
+   */
   constructor(options) {
+    super(options);
     let self = this;
 
     this.init(options);
@@ -31,7 +32,7 @@ class AppEditor {
     });
   }
 
-  init(option) {
+  init(options) {
     let self = this;
     let body = document.querySelector('body');
     // init layout
@@ -43,13 +44,13 @@ class AppEditor {
     });
 
     let book = new Book({
-      root: option.bookRoot
+      root: options.bookRoot
     });
     this.book = book;
 
     let menu = new Menu({
       book: book,
-      container: $('.menu .inner')
+      container: $('#menu')
     });
     this.menu = menu;
 
@@ -77,23 +78,11 @@ class AppEditor {
       });
     });
 
-
     this.editor.on('change', function (file, value) {
-      /*
-
-       if (self.menu.isMenuFile(file)) {
-        co(function *() {
-          yield self.menu.render();
-        }).catch(function (err) {
-          log.error(err);
-        });
-
-      } else {
-        */
-        preview.render(value);
-      // }
+      preview.render(value);
     });
-    this.editor.on('save', function (file, value) {
+
+    this.editor.on('save', function (file) {
       if (self.menu.isMenuFile(file)) {
         log.info('menu file saved, reload menu');
         co(function *() {
@@ -104,10 +93,9 @@ class AppEditor {
       }
     });
     // 绑定黏贴事件
-    window.addEventListener('paste', function (e) {
-      console.log(e);
-      console.log(clipboard.availableFormats());
-      console.log(clipboard.readText());
+    window.addEventListener('paste', function () {
+      log.info('clipboard availableFormat:', clipboard.availableFormats());
+      log.info('clipboard content:', clipboard.readText());
     });
   }
   * load() {
@@ -115,13 +103,13 @@ class AppEditor {
     log.debug('menu ok');
   }
   resize() {
-    $('#editor').height($(window).height() - 2);
+    $('#main').height($(window).height() - 40);
     this.menu.resize();
     this.editor.resize();
     this.preview.resize();
   }
   destroy() {
-
+    super.destroy();
   }
 }
 

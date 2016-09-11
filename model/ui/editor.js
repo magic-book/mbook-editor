@@ -59,19 +59,15 @@ class TabEditor extends UIBase {
       }
     });
   }
-  save() {
+  * save() {
     let self = this;
     this._unsaved = false;
     if (this.file === 'untitled') {
       // popup rename dialog
       return;
     }
-    co(function*() {
-      yield self.book.saveFile(self.file, self.value);
-      log.info();
-    }).catch(function (e) {
-      log.error('save file error', e.stack);
-    });
+    yield self.book.saveFile(self.file, self.value);
+    log.info();
   }
   get value() {
     return this.editor.getValue();
@@ -115,7 +111,6 @@ class Editor extends UIBase {
       theme: 'base16-light',
       indentUnit: 2,
       tabSize: 2,
-      viewportMargin: Infinity,
       styleActiveLine: true,
       showCursorWhenSelecting: true,
       matchBrackets: true,
@@ -124,8 +119,12 @@ class Editor extends UIBase {
           if (!self.currentTab) {
             return;
           }
-          self.currentTab.save();
-          self.emit('save', self.currentTab.file, self.currentTab.value);
+          co(function* () {
+            yield self.currentTab.save();
+            self.emit('save', self.currentTab.file, self.currentTab.value);
+          }).catch(function (e) {
+            log.error('save file error:', e.message);
+          });
         }
       }
     });

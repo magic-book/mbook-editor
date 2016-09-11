@@ -6,7 +6,7 @@ const log = require('../../lib/log');
 class Preview extends UIBase {
   constructor(options) {
     super();
-    this.cnt = options.container;
+    this.cnt = options.container.find('.inner');
   }
   /**
    * render markstring

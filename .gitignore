@@ -4,6 +4,7 @@
 
 # Build
 /release
+.node
 
 # Vim
 # swap
@@ -14,3 +15,7 @@ Session.vim
 # temporary
 .netrwhist
 *~
+
+# Node
+npm-debug.log
+/build

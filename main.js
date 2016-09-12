@@ -7,13 +7,45 @@
 'use strict';
 // const config = require('./config');
 const log = require('./lib/log');
+const program = require('commander');
+const qs = require('querystring');
+const path = require('path');
 // require('electron-cookies');
 const electron = require('electron');
 const app = electron.app;  // Module to control application life.
 const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
-// var os = require('os');
+const os = require('os');
 
+
+function checkAbsPath(p) {
+  let platform = os.platform();
+
+  if (platform === 'win32') {
+    return /^\w:\\/.test(p);
+  } else {
+    return p.startsWith('/');
+  }
+}
+/**
+ * 处理命令行进来的参数，比如直接打开文件夹
+ */
+const cwd = process.cwd();
+program.version(require('./package.json').version)
+  .option('-d, --dev', 'dev model')
+  .parse(process.argv);
+
+let bookdir = program.args[0];
+if (bookdir) {
+  if (!checkAbsPath(bookdir)) {
+    bookdir = path.join(cwd, bookdir);
+  }
+}
+
+if (program.dev) {
+  bookdir = path.join(__dirname, './example');
+  log.warn('dev model, open example book');
+}
 
 // Report crashes to our server.
 electron.crashReporter.start({
@@ -28,9 +60,7 @@ electron.crashReporter.start({
 var mainWindow = null;
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
-  if (process.platform != 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
 app.on('quit', function () {
@@ -42,15 +72,22 @@ app.on('quit', function () {
 app.on('ready', function () {
   let base = __dirname;
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600});
+  mainWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    frame: false
+  });
 
+  if (bookdir) {
+    mainWindow.loadURL(`file://${__dirname}/view/main.html#!/editor?bookRoot=${bookdir}`);
+  } else {
+    mainWindow.loadURL(`file://${__dirname}/view/main.html#!/home`);
+  }
 
   // and load the index.html of the app.
-  mainWindow.loadURL(`file://${__dirname}/view/main.html#!/editor?bookRoot=` + __dirname + '/example');
+  // mainWindow.loadURL(`file://${__dirname}/view/main.html#!/editor?bookRoot=` + __dirname + '/example');
   // Open the devtools.
-  mainWindow.webContents.openDevTools({
-    mode: 'bottom'
-  });
+
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -58,7 +95,6 @@ app.on('ready', function () {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null;
-    app.exit(0);
   });
 
   // catch the drop event, and trigger
@@ -75,20 +111,36 @@ app.on('ready', function () {
   /**
    * 控制器ready事件
    */
-  ipcMain.on('ctrl-ready', function (event, args) {
+  ipcMain.on('scene', function (event, args) {
+    let scene = args.scene;
+    let options = qs.stringify(args.options);
+    mainWindow.loadURL(`file://${__dirname}/view/main.html#!/${scene}?${options}`);
+    event.returnValue = 'success';
+  });
 
+  ipcMain.on('devtools', function (event, bool) {
+    const mode = {
+      mode: 'bottom'
+    };
+    if (bool !== undefined) {
+      if (bool) {
+        mainWindow.webContents.openDevTools(mode);
+      } else {
+        mainWindow.webContents.closeDevTools();
+      }
+    } else {
+      // toggle devTool
+      if (mainWindow.webContents.isDevToolsOpened()) {
+        mainWindow.webContents.closeDevTools();
+      } else {
+        mainWindow.webContents.openDevTools(mode);
+      }
+    }
+    event.returnValue = 'success';
   });
-  /**
-   * 控制器切换事件
-   */
-  ipcMain.on('ctrl-change', function (event, args) {
 
-  });
-  /*
-  mainWindow.webContents.on('dom-ready', function (evt) {
-    console.log(evt);
-    this.executeJavaScript('', function () {});
-  });
-  */
-  // console.log(mainWindow.webContents);
+  // mainWindow.webContents.on('dom-ready', function (evt) {
+  //   console.log(evt);
+  //   this.executeJavaScript('', function () {});
+  // });
 });

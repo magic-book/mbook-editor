@@ -1,28 +1,32 @@
 <link rel="stylesheet" href="../node_modules/codemirror/lib/codemirror.css" />
+<link rel="stylesheet" href="../node_modules/codemirror/theme/base16-light.css"/>
 <style type="text/css">
     .main {
         width: 100%;
-        height: 100%;
-        border-collapse: collapse;
+        display: flex;
+        flex-flow: row nowrap;
     }
     .menu {
-        width: 15%;
-        height: 100%;
-        vertical-align: top;
-        background: #444;
-        border-right: 1px solid #ddd;
+        flex: 1;
+        background: #e3e3e3;
     }
     .editor {
-        width: 40%;
-        vertical-align: top;
-        border-right: 1px solid #ddd;
+        flex: 2;
+        overflow:hidden;
+        background: #f6f6f6;
     }
     .editor .inner {
         margin:0px;
     }
     .preview {
-        vertical-align: top;
-        width: 45%;
+        flex: 2;
+        overflow: scroll;
+    }
+    .preview .inner {
+        word-wrap: break-word;
+        word-break: break-all;
+        margin: 0px 10px;
+        overflow: scroll;
     }
     .inner {
         margin: 5px;
@@ -44,31 +48,31 @@
 
     .trewview a,  .trewview a:link{
         display: block;
-        color: #fff;
-        padding: 0px 5px;
-        line-height: 190%;
+        color: #676767;
+        padding: 0px 10px;
+        line-height: 160%;
         text-decoration: none;
     }
     .trewview a:hover{
-        background: #777
+        background: #d1d1d1;
     }
     .menu a.level1 {
-        padding-left: 15px;
+        padding-left: 30px;
     }
     .menu a.level2 {
-        padding-left: 25px;
+        padding-left: 50px;
     }
     .menu a.level3 {
-        padding-left: 35px;
+        padding-left: 70px;
     }
     .menu a.level4 {
-        padding-left: 45px;
+        padding-left: 90px;
     }
     .menu a.level5 {
-        padding-left: 55px;
+        padding-left: 110px;
     }
     .menu a.level6 {
-        padding-left: 65px;
+        padding-left: 130px;
     }
     .editor .inner{
         overflow: hidden;
@@ -77,30 +81,39 @@
         height: 100%;
         overflow: hidden;
     }
+
+    .cm-header-1 {font-size: 1.6em;}
+    .cm-header-2 {font-size: 1.4em;}
+    .cm-header-3 {font-size: 1.2em;}
+    .cm-header-4 {font-size: 1.1em;}
+    .cm-header-5 {font-size: 1.05em;}
+    .cm-header-6 {font-size: 1em;}
+    .cm-quote {color: #90a959;}
+    .cm-s-base16-light .CodeMirror-activeline-background {
+        background: #f9f9f9;
+    }
+    .cm-s-base16-light.CodeMirror {
+        background: #f6f6f6;
+    }
+    .CodeMirror pre {
+        padding: 0px 10px;
+    }
 </style>
-
-<table class="main">
-    <tr>
-        <td class="menu">
-            <div class="inner trewview">
-
-            </div>
-        </td>
-        <td class="editor">
-            <div class="inner" id="editor">
-                <div class="toolbar" style="display:none">
-                    <div class="toolbar-inner">
-                        <div class="btn-toolbar" role="toolbar" style="margin: 0;">
-                        </div>
-                    </div>
+<% include common/head.html %>
+<div id="main" class="main">
+    <div class="menu" id="menu">
+        <div class="trewview"></div>
+    </div>
+    <div class="editor" id="editor">
+        <div class="toolbar" style="margin-top:5px;">
+            <div class="toolbar-inner">
+                <div class="btn-toolbar" role="toolbar" style="margin: 0;">
                 </div>
-                <div class="content"></div>
             </div>
-        </td>
-        <td style="vertical-align: top">
-            <div class="inner" id="preview">
-                preivew
-            </div>
-        </td>
-    </tr>
-</table>
+        </div>
+        <div class="content"></div>
+    </div>
+    <div class="preview" id="preview">
+        <div class="inner"></div>
+    </div>
+</div>

@@ -1,9 +1,5 @@
 'use strict';
 
-require('jstree');
-require('ace-builds/src/ace');
-require('ace-builds/src/mode-markdown');
-
 const $ = require('jquery');
 const co = require('co');
 const fs = require('fs');
@@ -11,18 +7,23 @@ const mmm = require('mmmagic');
 const Magic = mmm.Magic;
 const view = require('../../lib/view');
 const log = require('../../lib/log');
-const BookRes = require('../../lib/book_file.js');
 
+const BookRes = require('../../lib/book_file.js');
+const BaseCtrl = require('../base_controller');
 const Book = require('../../model/data/book');
 const Menu = require('../../model/ui/menu');
 const Editor = require('../../model/ui/editor');
 const Preview = require('../../model/ui/preview');
-
 const clipboard = require('electron').clipboard;
 const {BrowserWindow} = require('electron').remote;
 
-class AppEditor {
+class AppEditor extends BaseCtrl {
+  /**
+   * @param  {Object} options
+   *         - bookRoot
+   */
   constructor(options) {
+    super(options);
     let self = this;
 
     this.init(options);
@@ -35,7 +36,7 @@ class AppEditor {
     });
   }
 
-  init(option) {
+  init(options) {
     let self = this;
     let body = document.querySelector('body');
     // init layout
@@ -45,29 +46,31 @@ class AppEditor {
         return str;
       }
     });
-
     let book = new Book({
-      root: option.bookRoot
+      root: options.bookRoot
     });
     this.book = book;
+    log.info('init book model');
 
     let menu = new Menu({
       book: book,
-      container: $('.menu .inner')
+      container: $('#menu')
     });
     this.menu = menu;
+    log.info('init book menu');
 
     let editor = new Editor({
       book: book,
       container: $('#editor')
     });
     this.editor = editor;
+    log.info('init book editor');
 
     let bookres = new BookRes(option.bookRoot);
     this.bookres = bookres;
 
     let magic = new Magic(mmm.MAGIC_MIME_TYPE);
-    this.magic = magic; 
+    this.magic = magic;
 
     /**
      * preview
@@ -78,29 +81,21 @@ class AppEditor {
       container: $('#preview')
     });
     this.preview = preview;
+    log.info('init book preview');
 
 
-    this.menu.on('open_file', function (file) {
-      editor.createTab(file);
+    this.menu.on('open_file', function (title, file) {
+      editor.createTab({
+        file: file,
+        title: title
+      });
     });
-
 
     this.editor.on('change', function (file, value) {
-      /*
-
-       if (self.menu.isMenuFile(file)) {
-        co(function *() {
-          yield self.menu.render();
-        }).catch(function (err) {
-          log.error(err);
-        });
-
-      } else {
-        */
-        preview.render(value);
-      // }
+      preview.render(value);
     });
-    this.editor.on('save', function (file, value) {
+
+    this.editor.on('save', function (file) {
       if (self.menu.isMenuFile(file)) {
         log.info('menu file saved, reload menu');
         co(function *() {
@@ -112,9 +107,8 @@ class AppEditor {
     });
     // 绑定黏贴事件
     window.addEventListener('paste', function (e) {
-      console.log(e);
-      console.log(clipboard.availableFormats());
-      console.log(clipboard.readText());
+      log.info('clipboard availableFormat:', clipboard.availableFormats());
+      log.info('clipboard content:', clipboard.readText());
 
       function * pasteImage(img) {
         let cursor = self.editor.editor.getCursor();
@@ -123,10 +117,10 @@ class AppEditor {
       }
 
       let dataFormats = clipboard.availableFormats();
-      
+
       // TODO: use system tools to paste
       if (dataFormats.length == 0) {
-      
+
       } else if (dataFormats.lastIndexOf('image/png') != -1) {
         co(pasteImage(clipboard.readImage())).catch(function(e) {
           console.log(e.stack);
@@ -146,7 +140,7 @@ class AppEditor {
             if (res.startsWith('image')) {
               co(pasteImage(data)).catch(function(e) {
                 console.log(e.stack);
-                log.error('copy local image to project error', e);    
+                log.error('copy local image to project error', e);
               });
             } else {
               log.error('unsupport file format');
@@ -163,13 +157,13 @@ class AppEditor {
     log.debug('menu ok');
   }
   resize() {
-    $('#editor').height($(window).height() - 2);
+    $('#main').height($(window).height() - 40);
     this.menu.resize();
     this.editor.resize();
     this.preview.resize();
   }
   destroy() {
-
+    super.destroy();
   }
 }
 

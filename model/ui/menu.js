@@ -1,6 +1,7 @@
 'use strict';
 
 const $ = require('jquery');
+const log = require('../../lib/log');
 
 function nextLevel(name) {
   let n = name[name.length - 1];
@@ -28,29 +29,28 @@ class Menu extends UIBase {
     super();
     let self = this;
     this.book = option.book;
-    option.container.html('<div><a class="btn_edit" data-id="/SUMMARY.md">编辑目录</a></div><div class="bookmenu"></div>');
+    option.container.find('.trewview').html('<div><a class="btn_edit" data-id="/SUMMARY.md">编辑目录</a></div><div class="bookmenu"></div>');
     let editBtn = option.container.find('.btn_edit');
     let menuList = option.container.find('.bookmenu');
 
     this.cnt = menuList;
 
     editBtn.on('click', function () {
-      let id = this.dataset.id;
-      self.emit('open_file', id);
+      let file = this.dataset.id;
+      self.emit('open_file', 'menu', file);
     });
 
     menuList.on('click', function (e) {
-      console.log('>>>>> click', e);
       if (e.which !== 1) {
-        // console.log('>>>>>', e.which);
+        log.warn('menu right click');
         return;
       }
-      let id = e.target.dataset.id;
-      if (!id) {
-        // console.log('empty node');
+      let file = e.target.dataset.id;
+      if (!file) {
+        log.warn('empty node');
         return;
       }
-      self.emit('open_file', id);
+      self.emit('open_file', $(e.target).text(), file);
     });
 
     menuList.on('mousedown', 'a', function (e) {
@@ -111,7 +111,7 @@ class Menu extends UIBase {
     });
   }
   * render() {
-    let data = yield this.book.loadMenu();
+    let data = yield this.book.menu.load();
     this.cnt.html(this.genHTML(data));
   }
   /**

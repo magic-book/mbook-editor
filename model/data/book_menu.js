@@ -15,10 +15,10 @@ class BookMenu extends EventEmitter {
    * @param  {Object} option
    *         - root {String} book abs root
    */
-  constructor(option) {
+  constructor(options) {
     super();
-    this.root = option.root;
-    this.menuFile = path.join(option.root, './SUMMARY.md');
+    this.root = options.root;
+    this.menuFile = path.join(options.root, './SUMMARY.md');
   }
   * load() {
     let data = yield fsp.readFile(this.menuFile);

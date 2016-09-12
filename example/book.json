@@ -1,0 +1,10 @@
+{
+  "title": "MBook",
+  "description": "magic book specification",
+  "root": "src",
+  "author": "mbook",
+  "isbn": "",
+  "language": " zh-cn",
+  "direction": "ltr",
+  "gitbook": ""
+}

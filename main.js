@@ -32,6 +32,7 @@ function checkAbsPath(p) {
  */
 const cwd = process.cwd();
 program.version(require('./package.json').version)
+  .option('-d, --dev', 'dev model')
   .parse(process.argv);
 
 let bookdir = program.args[0];
@@ -39,6 +40,11 @@ if (bookdir) {
   if (!checkAbsPath(bookdir)) {
     bookdir = path.join(cwd, bookdir);
   }
+}
+
+if (program.dev) {
+  bookdir = path.join(__dirname, './example');
+  log.warn('dev model, open example book');
 }
 
 // Report crashes to our server.
@@ -54,9 +60,7 @@ electron.crashReporter.start({
 var mainWindow = null;
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
-  //if (process.platform != 'darwin') {
   app.quit();
-  //}
 });
 
 app.on('quit', function () {

@@ -4,28 +4,61 @@ const fsp = require('fs-promise');
 const path = require('path');
 const EventEmitter = require('events').EventEmitter;
 const BookMenu = require('./book_menu');
+const BookRes = require('./book_res');
+const log = require('../../lib/log');
 
 /**
  * @class Book
  */
 class Book extends EventEmitter {
   /**
-   * [constructor description]
-   * @param  {Object} option
+   * @param  {Object} options
    *         - root {String} book abs root
    */
-  constructor(option) {
+  constructor(options) {
     super();
-    this.root = option.root;
-    this.menu = new BookMenu(option);
+    this.root = options.root;
+    this.loadBookInfo();
+    this.src = path.join(options.root, this.bookInfo.root);
+    /**
+     * 菜单
+     * @type {BookMenu}
+     */
+    this.menu = new BookMenu({
+      root: this.src
+    });
+    /**
+     * 资源管理
+     * @type {BookRes}
+     */
+    this.res = new BookRes({
+      root: this.src
+    });
+  }
+  loadBookInfo() {
+    let file = path.join(this.root, 'book.json');
+    let bookInfo;
+    try {
+      bookInfo = require(file);
+    } catch (e) {
+      if (e.code === 'MODULE_NOT_FOUND') {
+        log.warn('book.json not found');
+      } else {
+        log.error('book.json error:', e.message);
+      }
+      bookInfo = {
+        root: './src'
+      };
+    }
+    this.bookInfo = bookInfo;
   }
   * loadFile(file) {
-    let fpath = path.join(this.root, file);
+    let fpath = path.join(this.src, file);
     let data = yield fsp.readFile(fpath);
     return data.toString();
   }
   * saveFile(file, data) {
-    let fpath = path.join(this.root, file);
+    let fpath = path.join(this.src, file);
     yield fsp.mkdirs(path.dirname(fpath));
     yield fsp.writeFile(fpath, data);
   }

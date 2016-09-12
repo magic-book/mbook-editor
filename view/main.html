@@ -29,7 +29,7 @@
     (function () {
       const {ipcRenderer} = require('electron');
       const remote = require('electron').remote;
-      const log = remote.app.log;
+      const log = require('../lib/log');
       let lastApp;
       function router() {
         let hash = location.hash.substr(2);
@@ -47,12 +47,24 @@
         if (lastApp) {
           lastApp.destroy();
         }
-        let Controller = require(path.join(__dirname, '../controller', router.pathname));
-        lastApp = new Controller(router.query);
-        lastApp.resize && lastApp.resize();
-        lastApp.on('scene', function (data) {
-          ipcRenderer.sendSync('scene', data);
-        });
+        log.debug('loading controller: ', router.pathname);
+        let Controller;
+        try {
+          Controller = require(path.join(__dirname, '../controller', router.pathname));
+        } catch (e) {
+          log.error('loading controller error', e.stack);
+        }
+        try {
+          log.debug('new controller: ', router.query);
+          lastApp = new Controller(router.query);
+          log.debug('resize');
+          lastApp.resize && lastApp.resize();
+          lastApp.on('scene', function (data) {
+            ipcRenderer.sendSync('scene', data);
+          });
+        } catch (e) {
+          log.error('init controller error', e.stack);
+        }
       }
       window.addEventListener('resize', function () {
         // let w = window.document.documentElement.clientWidth;
@@ -88,6 +100,4 @@
       router();
     })();
   </script>
-  <!--<script type="text/javascript" src="../static/mathjax/MathJax.js?config=TeX-AMS-MML_SVG"></script>-->
-  <!-- <script type="text/javascript" src="static/application.js"></script> -->
 </html>

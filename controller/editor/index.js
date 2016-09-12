@@ -109,18 +109,40 @@ class AppEditor {
       console.log(e);
       console.log(clipboard.availableFormats());
       console.log(clipboard.readText());
+
+      function * pasteImage(img) {
+        let cursor = self.editor.editor.getCursor();
+        let path = yield self.bookres.saveImage(self.editor.currentTab.file, img);
+        self.editor.paste('![](' + path + ')', cursor);
+      }
+
+      let dataFormats = clipboard.availableFormats();
       
-      if (clipboard.availableFormats().lastIndexOf('image/png') != -1) {
-        co(function *() {
-          let cursor = self.editor.editor.getCursor();
-          let path = yield self.bookres.saveImage(self.editor.currentTab.file,clipboard.readImage());
-          self.editor.paste('![](' + path + ')', cursor);
-        }).catch(function(e) {
+      // TODO: use system tools to paste
+      if (dataFormats.length == 0) {
+      
+      } else if (dataFormats.lastIndexOf('image/png') != -1) {
+        co(pasteImage(clipboard.readImage())).catch(function(e) {
           console.log(e.stack);
           log.error('save image to local error', e);
         });
+      /* TODO:in gnome, file in clipboard is saved as x-special/gnome-copied-files.
+       * electron clipboard can use readText to get its adsolute path.
+       * but i dont know how to find the difference between the plain text and the image
+       */
+      } else if (dataFormats.lastIndexOf('text/plain') != -1) {
+        let data = clipboard.readText();
+        if (data.match(/\.(bmp|gif|jpeg|jpg|tif|tiff|ico)/)) {
+          if (confirm('Paste image?')) {
+            e.preventDefault();
+            co(pasteImage(data)).catch(function(e) {
+              console.log(e.stack);
+              log.error('copy local image to project error', e);    
+            });
+          }
+        }
       }
-    });
+    }, true);
   }
   * load() {
     yield this.menu.render();

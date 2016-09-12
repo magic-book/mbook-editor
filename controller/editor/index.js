@@ -6,6 +6,9 @@ require('ace-builds/src/mode-markdown');
 
 const $ = require('jquery');
 const co = require('co');
+const fs = require('fs');
+const mmm = require('mmmagic');
+const Magic = mmm.Magic;
 const view = require('../../lib/view');
 const log = require('../../lib/log');
 const BookRes = require('../../lib/book_file.js');
@@ -62,6 +65,9 @@ class AppEditor {
 
     let bookres = new BookRes(option.bookRoot);
     this.bookres = bookres;
+
+    let magic = new Magic(mmm.MAGIC_MIME_TYPE);
+    this.magic = magic; 
 
     /**
      * preview
@@ -128,18 +134,26 @@ class AppEditor {
         });
       /* TODO:in gnome, file in clipboard is saved as x-special/gnome-copied-files.
        * electron clipboard can use readText to get its adsolute path.
-       * but i dont know how to find the difference between the plain text and the image
+       * now i use libmagic to get the file mime type.
        */
       } else if (dataFormats.lastIndexOf('text/plain') != -1) {
         let data = clipboard.readText();
-        if (data.match(/\.(bmp|gif|jpeg|jpg|tif|tiff|ico)/)) {
-          if (confirm('Paste image?')) {
-            e.preventDefault();
-            co(pasteImage(data)).catch(function(e) {
-              console.log(e.stack);
-              log.error('copy local image to project error', e);    
-            });
-          }
+        try {
+          let buffer = fs.readFileSync(data);
+          e.preventDefault();
+          self.magic.detect(buffer, function(err, res) {
+            if (err) throw err;
+            if (res.startsWith('image')) {
+              co(pasteImage(data)).catch(function(e) {
+                console.log(e.stack);
+                log.error('copy local image to project error', e);    
+              });
+            } else {
+              log.error('unsupport file format');
+            }
+          });
+        } catch (e) {
+          // default text paste
         }
       }
     }, true);

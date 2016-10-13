@@ -29,6 +29,7 @@ install:
 #TODO: icon and ignore files
 release:
 	@$(ELECTRON_PACKAGER) . MagicBook --platform=$(PLATFORM) --arch=$(ARCH) --out=release --overwrite --version=1.3.5 --ignore=$(BUILD_IGNORE)
+	@./node_modules/.bin/electron-rebuild
 
 test:
 	@./node_modules/.bin/mocha --recursive -r should test

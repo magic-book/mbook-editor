@@ -66,7 +66,7 @@ class AppEditor extends BaseCtrl {
     this.editor = editor;
     log.info('init book editor');
 
-    let bookres = new BookRes(option.bookRoot);
+    let bookres = new BookRes(options.bookRoot);
     this.bookres = bookres;
 
     let magic = new Magic(mmm.MAGIC_MIME_TYPE);

@@ -17,6 +17,7 @@ const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
 const os = require('os');
 
+log.info(process.versions);
 
 function checkAbsPath(p) {
   let platform = os.platform();
@@ -30,6 +31,9 @@ function checkAbsPath(p) {
 /**
  * 处理命令行进来的参数，比如直接打开文件夹
  */
+if (process.argv.length === 1) {
+  process.argv.unshift('');
+}
 const cwd = process.cwd();
 program.version(require('./package.json').version)
   .option('-d, --dev', 'dev model')
@@ -75,7 +79,13 @@ app.on('ready', function () {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    frame: false
+    frame: false,
+    show: false
+  });
+
+  mainWindow.once('ready-to-show', () => {
+    log.info('>>> win ready');
+    mainWindow.show();
   });
 
   if (bookdir) {

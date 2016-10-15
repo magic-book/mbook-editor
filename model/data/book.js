@@ -62,6 +62,23 @@ class Book extends EventEmitter {
     yield fsp.mkdirs(path.dirname(fpath));
     yield fsp.writeFile(fpath, data);
   }
+  * deleteFile(file) {
+    let fpath = path.join(this.src, file);
+    yield fsp.unlink(fpath);
+  }
+  * renameFile(src, dest) {
+    if (src === dest) {
+      return;
+    }
+    src = path.join(this.src, src);
+    dest = path.join(this.src, dest);
+    let exists = yield fsp.exists(src);
+    if (!exists) {
+      return;
+    }
+    yield fsp.mkdirs(path.dirname(dest));
+    yield fsp.rename(src, dest);
+  }
 }
 
 module.exports = Book;

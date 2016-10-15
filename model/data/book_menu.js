@@ -26,7 +26,10 @@ class BookMenu extends EventEmitter {
     let res = this.parse(tokens);
     return res;
   }
-  * save(file, data) {
+  * save(data) {
+    if (typeof data === 'object') {
+      data = this.stringify(data);
+    }
     yield fsp.writeFile(this.menuFile, data);
   }
   parse(tokens) {
@@ -69,6 +72,27 @@ class BookMenu extends EventEmitter {
       }
     });
     return root.children;
+  }
+  stringify(data, indent) {
+    let res = [];
+    let self = this;
+    if (indent === undefined) {
+      indent = 0;
+    }
+    function _indent(n) {
+      let str = '';
+      for (let i = 0; i < n; i++) {
+        str += '  ';
+      }
+      return str;
+    }
+    data.forEach(function (n) {
+      res.push(_indent(indent) + '* [' + n.text + '](' + n.id + ')');
+      if (n.children) {
+        res = res.concat(self.stringify(n.children, indent + 1));
+      }
+    });
+    return indent === 0 ? res.join('\n') : res;
   }
   parseText(txt) {
     let len = txt.length;

@@ -1,13 +1,12 @@
 * [README](README.md)
-* [chapter_1](chapter_1/README.md)
+* [chapter_1](chapter_1.md)
   * [rename](chapter_1/rename)
+    * [test](/chapter_1/rename/test.md)
   * [test](chapter_1/test)
   * [test004](chapter_1/test001)
-    * [test005](cha.md)
+  * [test006](chapter_1/test006.md)
+* [test 12](/test_12/README.md)
+  * [sss](/test_12/sss.md)
 * [thanks3](thanks.md)
-* [test](test/test.md)
 * [测试](test/测试.md)
-
-asdsc
-
-asd
+* [s](/s.md)

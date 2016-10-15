@@ -8,7 +8,8 @@ module.exports = {
   debug: true,
   logs: {
     sys: {
-      level: 'DEBUG'
+      level: 'DEBUG',
+      // file: '/Users/jianxun/workspace/mbook/test.log'
     }
   }
 };

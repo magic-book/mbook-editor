@@ -15,7 +15,6 @@ const Menu = require('../../model/ui/menu');
 const Editor = require('../../model/ui/editor');
 const Preview = require('../../model/ui/preview');
 const clipboard = require('electron').clipboard;
-const {BrowserWindow} = require('electron').remote;
 
 class AppEditor extends BaseCtrl {
   /**
@@ -38,9 +37,8 @@ class AppEditor extends BaseCtrl {
 
   init(options) {
     let self = this;
-    let body = document.querySelector('body');
     // init layout
-    view.render(body, 'editor.html', {
+    view.render(options.container, 'editor.html', {
       autosave: false,
       keyboardShortcut: function (str) {
         return str;
@@ -91,6 +89,21 @@ class AppEditor extends BaseCtrl {
       });
     });
 
+    this.menu.on('rename_file', function (data, done) {
+      co(function* () {
+        if (!Array.isArray(data)) {
+          data = [data];
+        }
+        for (let i = 0; i < data.length; i++) {
+          yield self.book.renameFile(data[i].src, data[i].dest);
+        }
+        done();
+      }).catch(function (e) {
+        log.error('rename file error', e);
+        done(e.message);
+      });
+    });
+
     this.editor.on('change', function (file, value) {
       preview.render(value);
     });
@@ -118,13 +131,11 @@ class AppEditor extends BaseCtrl {
 
       let dataFormats = clipboard.availableFormats();
 
-      // TODO: use system tools to paste
       if (dataFormats.length == 0) {
-
+        // TODO: use system tools to paste
       } else if (dataFormats.lastIndexOf('image/png') != -1) {
-        co(pasteImage(clipboard.readImage())).catch(function(e) {
-          console.log(e.stack);
-          log.error('save image to local error', e);
+        co(pasteImage(clipboard.readImage())).catch(function (e) {
+          log.error('save image to local error', e.stack);
         });
       /* TODO:in gnome, file in clipboard is saved as x-special/gnome-copied-files.
        * electron clipboard can use readText to get its adsolute path.
@@ -135,12 +146,11 @@ class AppEditor extends BaseCtrl {
         try {
           let buffer = fs.readFileSync(data);
           e.preventDefault();
-          self.magic.detect(buffer, function(err, res) {
+          self.magic.detect(buffer, function (err, res) {
             if (err) throw err;
             if (res.startsWith('image')) {
-              co(pasteImage(data)).catch(function(e) {
-                console.log(e.stack);
-                log.error('copy local image to project error', e);
+              co(pasteImage(data)).catch(function (e) {
+                log.error('copy local image to project error', e.stack);
               });
             } else {
               log.error('unsupport file format');

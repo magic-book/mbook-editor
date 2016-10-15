@@ -15,10 +15,9 @@ class Home extends BaseCtrl {
     log.info('app_home inited');
   }
 
-  init() {
+  init(options) {
     let self = this;
-    let body = document.querySelector('body');
-    view.render(body, 'home.html');
+    view.render(options.container, 'home.html');
 
     $('#open_book').on('click', () => {
       let bookDir = dialog.showOpenDialog({properties: ['openDirectory']});

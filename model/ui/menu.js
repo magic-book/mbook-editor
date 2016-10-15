@@ -2,14 +2,30 @@
 
 const $ = require('jquery');
 const log = require('../../lib/log');
+const co = require('co');
+const path = require('path');
+const contextMenu = require('./contextmenu');
+const dialogs = require('dialogs');
+const dialog = dialogs({});
 
 function nextLevel(name) {
+  name = currentLevel(name);
   let n = name[name.length - 1];
   return name.substr(0, name.length - 1) + (Number(n) + 1);
 }
+function currentLevel(name) {
+  let names = name.split(/\s+/);
+  for (let i = 0, len = names.length; i < len; i++) {
+    if (/level\d+/.test(names[i])) {
+      return names[i];
+    }
+  }
+}
 
 function resolveLevel(node, name) {
-  $(node).find('> a').attr('class', name);
+  let aNode = $(node).find('> a');
+  let cls = aNode.attr('class');
+  aNode.attr('class', cls.replace(/level\d+/, name));
   $(node).find('> ul > li').each(function () {
     resolveLevel(this, nextLevel(name));
   });
@@ -25,13 +41,19 @@ class Menu extends UIBase {
    *         - container {JQueryNode}
    * @return {[type]}        [description]
    */
-  constructor(option) {
+  constructor(options) {
     super();
     let self = this;
-    this.book = option.book;
-    option.container.find('.trewview').html('<div><a class="btn_edit" data-id="/SUMMARY.md">编辑目录</a></div><div class="bookmenu"></div>');
-    let editBtn = option.container.find('.btn_edit');
-    let menuList = option.container.find('.bookmenu');
+    this.book = options.book;
+    this.container = options.container;
+    this.container.find('.trewview').html(`
+      <div class="bookmenu"></div>
+      <div class="contextmenu"></div>
+    `);
+    let editBtn = options.container.find('.btn_edit');
+    let menuList = options.container.find('.bookmenu');
+
+    $(window).on('click', this.hideContextMenu.bind(this));
 
     this.cnt = menuList;
 
@@ -42,7 +64,7 @@ class Menu extends UIBase {
 
     menuList.on('click', function (e) {
       if (e.which !== 1) {
-        log.warn('menu right click');
+        // log.warn('menu right click');
         return;
       }
       let file = e.target.dataset.id;
@@ -50,11 +72,20 @@ class Menu extends UIBase {
         log.warn('empty node');
         return;
       }
-      self.emit('open_file', $(e.target).text(), file);
+      if (self.activeMenuItem(e.target)) {
+        self.emit('open_file', $(e.target).text(), file);
+      }
     });
 
-    menuList.on('mousedown', 'a', function (e) {
-      if (e.which !== 1) {
+    this.container.on('contextmenu', function (e) {
+      // if (e.target.tagName === 'A') {
+      self.activeMenuItem(e.target);
+      // }
+      self.showContextMenu(e);
+    });
+
+    menuList.on('mousedown', function (e) {
+      if (e.which !== 1 || e.target.tagName !== 'A') {
         return;
       }
       let node = e.target;
@@ -100,6 +131,7 @@ class Menu extends UIBase {
           .unbind('losecapture')
           .unbind('mouseup', _up);
         self.dragee.remove();
+        $(self.dragee.origin).removeClass('dragging');
         self.dragee.origin = null;
         self.dragee = null;
       }
@@ -109,10 +141,33 @@ class Menu extends UIBase {
         })
         .on('mouseup', _up);
     });
+
+    this.on('change', function (data) {
+      log.debug('save menu', data);
+      co(function* () {
+        yield self.save(data);
+      }).catch(function (e) {
+        log.error('save menu error', e.message);
+      });
+    });
   }
   * render() {
     let data = yield this.book.menu.load();
     this.cnt.html(this.genHTML(data));
+  }
+  * save(data) {
+    yield this.book.menu.save(data);
+  }
+  activeMenuItem(target) {
+    if (target.tagName === 'SPAN') {
+      target = target.parentNode;
+    }
+    if (target.tagName !== 'A') {
+      return false;
+    }
+    this.container.find('.bookmenu .active').removeClass('active');
+    $(target).addClass('active');
+    return true;
   }
   /**
    * 检查文件是否为菜单文件
@@ -121,9 +176,168 @@ class Menu extends UIBase {
   isMenuFile(file) {
     return file === '/SUMMARY.md';
   }
+  showContextMenu(e) {
+    let menu;
+    let self = this;
+    let target = e.target;
+    if (target.tagName === 'SPAN') {
+      target = target.parentNode;
+    }
+    if (target.tagName === 'A') {
+      menu = `
+        <a action="new_child">新建子章节</a>
+        <a action="new_sibling">新建章节</a>
+        <a action="rename">重命名</a>
+        <a action="delete">删除</a>
+      `;
+      this.ctxMenuTarget = target;
+    } else {
+      menu = `
+        <a action="new_sibling">新建章节</a>
+      `;
+    }
+
+    contextMenu.show(menu, {x: e.clientX, y: e.clientY}, function (action) {
+      self.menuAction(action);
+    });
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  hideContextMenu() {
+    this.container.find('.contextmenu').hide();
+    this.ctxMenuTarget = null;
+  }
+  /**
+   * 文件名转换，过滤, name中不包含空格, 统一小写，以减小出问题的概率
+   */
+  safeFileName(name)  {
+    name = name.trim().replace(/\s/g, '_').toLowerCase();
+
+    if (name === 'readme' || name === 'summary') {
+      name = '_' + name;
+    }
+    return name;
+  }
+  /** 文件名检查 */
+  genFileName(ref, name, ids) {
+    let id = path.join(ref, this.safeFileName(name) + '.md');
+    let count = 0;
+    if (ids) {
+      while (ids[id]) {
+        id = path.join(ref, this.safeFileName(name) + '_' + count + '.md');
+        count++;
+      }
+    }
+    return id;
+  }
+  menuAction(action) {
+    let ctxMenuTarget = this.ctxMenuTarget || this.container.find('.bookmenu > ul > li:last > a')[0];
+    let list;
+    let node;
+    let flag = false;
+    let self = this;
+    switch (action) {
+      case 'new_child':
+        list = $(ctxMenuTarget).next('ul.list');
+        if (!list.length) {
+          list = $('<ul class="list"></ul>');
+          list.insertAfter(ctxMenuTarget);
+          flag = true;
+        }
+        dialog.prompt('新子章节名称', function (name) {
+          if (!name) {
+            return;
+          }
+          name = name.trim();
+          let className = nextLevel($(ctxMenuTarget).attr('class'));
+          let cwd = path.join(ctxMenuTarget.dataset.cwd, self.safeFileName(ctxMenuTarget.getAttribute('title')));
+          let ids = {};
+          list.find('li > a').each(function () {
+            ids[this.dataset.id] = true;
+          });
+          let id = self.genFileName(cwd, name, ids);
+          node = $('<li></li>');
+          node.append(self.genNode({
+            id: id,
+            cwd: cwd,
+            className: className,
+            text: name
+          }));
+          list.append(node);
+          self.emit('change', self.getMenuData());
+          if (flag) {
+            let origin = ctxMenuTarget.dataset.id;
+            let newId = path.join(cwd, 'README.md');
+            self.emit('rename_file', {
+              src: origin,
+              dest: newId
+            });
+          }
+        });
+        break;
+      case 'new_sibling':
+        dialog.prompt('新章节名称', function (name) {
+          if (!name) {
+            return;
+          }
+          if (name.toLowerCase() === 'readme' || name.toLowerCase() === 'summary') {
+            return dialog.alert('章节名不能叫:' + name);
+          }
+          name = name.trim();
+          let className = currentLevel($(ctxMenuTarget).attr('class'));
+          let cwd = ctxMenuTarget.dataset.cwd;
+          let id = self.genFileName(cwd, name);
+          node = $('<li></li>');
+          node.append(self.genNode({
+            cwd: cwd,
+            id: id,
+            className: className,
+            text: name
+          }));
+          node.insertAfter($(ctxMenuTarget).parent());
+          self.emit('change', self.getMenuData());
+        });
+        break;
+      case 'rename':
+        dialog.prompt('更改章节名称', ctxMenuTarget.getAttribute('title'), function (name) {
+          if (!name) {
+            return;
+          }
+          if (name === 'README' || name === 'SUMMARY') {
+            return dialog.alert('系统保留名，章节名不能叫:' + name);
+          }
+          name = name.trim();
+          // 检查同级目录下，名字是否已经存在
+          let siblings = $(ctxMenuTarget).parent().parent().find('> li > a');
+          let flagName;
+          siblings.each(function () {
+            if (this.getAttribute('title') === name) {
+              flagName = true;
+            }
+          });
+          if (flagName) {
+            dialog.alert('章节名重复，相同目录下章节不能重名!');
+            return false;
+          }
+          $(ctxMenuTarget).text(name).attr('title', name);
+        });
+        break;
+      case 'delete':
+        dialog.confirm(`确定删除章节: ${ctxMenuTarget.getAttribute('title')} ?`, function (bool) {
+          if (bool) {
+            $(ctxMenuTarget).parent().remove();
+            self.emit('change', self.getMenuData());
+          } else {
+            dialog.cancel();
+          }
+        });
+        break;
+    }
+  }
   mousemove(e, offset, bound) {
     if (!this.dragee.inited) {
       $('.menu').append(this.dragee);
+      $(this.dragee.origin).addClass('dragging');
       this.dragee.inited = true;
     }
     let self = this;
@@ -224,12 +438,13 @@ class Menu extends UIBase {
       switch (cmd.action) {
         case 'prev':
           $(origin.parentNode).insertBefore(cmd.target.parentNode);
-          origin.className = cmd.target.className;
-          resolveLevel(origin.parentNode, cmd.target.className);
+          origin.dataset.cwd = cmd.target.dataset.cwd;
+          resolveLevel(origin.parentNode, currentLevel(cmd.target.className));
           break;
         case 'next':
           $(origin.parentNode).insertAfter(cmd.target.parentNode);
-          resolveLevel(origin.parentNode, cmd.target.className);
+          origin.dataset.cwd = cmd.target.dataset.cwd;
+          resolveLevel(origin.parentNode, currentLevel(cmd.target.className));
           break;
         case 'child':
           p = cmd.target.parentNode;
@@ -239,29 +454,75 @@ class Menu extends UIBase {
             $(p).append(ll);
           }
           $(origin.parentNode).prependTo(ll);
+          origin.dataset.cwd = path.join(cmd.target.dataset.cwd, self.safeFileName(cmd.target.getAttribute('title')));
           resolveLevel(origin.parentNode, nextLevel(cmd.target.className));
           break;
         default:
           // do nothing
       }
+      self.emit('change', self.getMenuData());
     }
+
     e.stopPropagation();
     e.preventDefault();
   }
-  genHTML(data, index) {
+  genHTML(data, indent, cwd) {
     let html = ['<ul class="list">'];
     let self = this;
-    index = index || 0;
+    indent = indent || 0;
+    cwd = cwd || '/';
     data.forEach(function (node) {
+      let isDir = node.children && node.children.length;
       html.push('<li>');
-      html.push('<a data-id="' + node.id + '" class="level' + index + '">', node.text, '</a>');
-      if (node.children && node.children.length) {
-        html = html.concat(self.genHTML(node.children, index + 1));
+      html.push(self.genNode({
+        id: node.id,
+        cwd: cwd,
+        text: node.text,
+        className: 'level' + indent,
+        isdir: isDir
+      }));
+      if (isDir) {
+        html = html.concat(
+          self.genHTML(node.children, indent + 1, path.join(cwd, self.safeFileName(node.text)))
+        );
       }
       html.push('</li>');
     });
     html.push('</ul>');
     return html.join('');
+  }
+  genNode(obj) {
+    return `
+        <a
+          data-id="${obj.id}"
+          data-cwd="${obj.cwd}"
+          class="${obj.className}"
+          title="${obj.text}" >
+          <i class="icon  dir_${obj.isdir}"></i>
+          <span class="name">${obj.text}</span>
+        </a>
+      `;
+  }
+  // 遍历菜单，返回数据
+  getMenuData() {
+    let bookmenu = this.container.find('.bookmenu');
+    return this._getMenuList(bookmenu.find('> ul.list'));
+  }
+  _getMenuList(list) {
+    let res = [];
+    let self = this;
+    list.find('> li > a').each(function () {
+      let tmp = {
+        id: this.dataset.id,
+        text: this.getAttribute('title')
+      };
+      let children = $(this).next('ul.list');
+      if (children) {
+        tmp.children = self._getMenuList(children);
+      }
+      res.push(tmp);
+    });
+    return res;
   }
 }
 

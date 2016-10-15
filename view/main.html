@@ -18,11 +18,55 @@
           -webkit-app-region:drag;
           -webkit-user-select: none;
         }
+        .titlebar {
+          height: 20px;
+          padding: 10px;
+          background-color: #676767;
+          color: #fff;
+          position: relative;
+          box-shadow: 0px 1px 2px #999;
+        }
+        .titlebar .title {
+          font-weight: bold;
+          font-size: 20px;
+        }
+        .titlebar .btn_close {
+          display: block;
+          width: 17px;
+          height: 17px;
+          position: absolute;
+          right: 10px;
+          top: 10px;
+          background: url(./imgs/button_close.png) transparent 0px 0px;
+          -webkit-app-region: no-drag;
+        }
+        .titlebar .btn_close:hover {
+          background-image: url(./imgs/button_close_hover.png)
+        }
+        #contextmenu {
+          display: none;
+          position: absolute;
+          background: #fff;
+          border: 1px solid #aaa;
+          border-radius: 4px;
+        }
+        #contextmenu a {
+          display: block;
+          padding: 2px 10px;
+        }
+        #contextmenu a:hover {
+            background: #e5e5e5;
+        }
       </style>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
-
+    <div class="titlebar dragable">
+      <span class="title">Mbook</span>
+      <a class="btn_close" onclick="action_close()">&nbsp;</a>
+    </div>
+    <div id="container"></div>
+    <div id="contextmenu"></div>
   </body>
   <script type="text/javascript">
     'use strict';
@@ -56,7 +100,14 @@
         }
         try {
           log.debug('new controller: ', router.query);
-          lastApp = new Controller(router.query);
+
+          let options = {
+            container: document.querySelector('#container')
+          };
+          Object.keys(router.query).forEach(function (k) {
+            options[k] = router.query[k];
+          });
+          lastApp = new Controller(options);
           log.debug('resize');
           lastApp.resize && lastApp.resize();
           lastApp.on('scene', function (data) {

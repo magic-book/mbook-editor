@@ -17,7 +17,7 @@ const UIBase = require('./ui_base');
 const co = require('co');
 
 /**
- * 编辑器Tab
+ * 编辑器Tabbin
  */
 class TabEditor extends UIBase {
   /**
@@ -89,7 +89,7 @@ class Editor extends UIBase {
     this.book = options.book;
     this.editCnt = editorContainer;
     // editorContainer.css;
-    //
+    /**
     CodeMirror.defineMode('mathdown', function (config) {
       var options = [];
       var ref = [['$$', '$$'], ['$', '$'], ['\\[', '\\]'], ['\\(', '\\)']];
@@ -103,11 +103,13 @@ class Editor extends UIBase {
       }
       return CodeMirror.multiplexingMode.apply(CodeMirror, [CodeMirror.getMode(config, 'gfm')].concat([].slice.call(options)));
     });
+    **/
 
     var editor = new CodeMirror(editorContainer[0], {
       lineNumbers: false,
+      lineWrapping: true,
       lineSeparator: '\n',
-      mode: 'mathdown',
+      mode: 'gfm',
       theme: 'base16-light',
       indentUnit: 2,
       tabSize: 2,
@@ -128,6 +130,7 @@ class Editor extends UIBase {
         }
       }
     });
+
 
     editor.on('change', function () {
       if (!self.currentTab) {

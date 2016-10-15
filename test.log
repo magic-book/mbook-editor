@@ -1,1 +1,53 @@
-/Users/jianxun/workspace/mbook/release/MagicBook-darwin-x64/MagicBook.app/Contents/MacOS/MagicBook,./example/
+[34m20160916 16:59:25.765 INFO[0m #37650 sys (sers/jianxun/workspace/mbook/release/MagicBook-darwin-x64/MagicBook.app/Contents/Resources/app/main.js:33:5) start [ '/Users/jianxun/workspace/mbook/release/MagicBook-darwin-x64/MagicBook.app/Contents/MacOS/MagicBook' ]
+[34m20160916 17:02:32.791 INFO[0m #37678 sys (sers/jianxun/workspace/mbook/release/MagicBook-darwin-x64/MagicBook.app/Contents/Resources/app/main.js:33:5) >>> 0 [ '/Users/jianxun/workspace/mbook/release/MagicBook-darwin-x64/MagicBook.app/Contents/MacOS/MagicBook' ]
+[34m20160916 17:06:56.017 INFO[0m #37721 sys (main.js:33:5) >>> 0 [ '/Users/jianxun/.nvm/versions/node/v4.4.3/lib/node_modules/electron-prebuilt/dist/Electron.app/Contents/MacOS/Electron',
+  '.' ]
+[34m20160916 17:06:56.040 INFO[0m #37721 sys (main.js:41:5) >>> 1 Command {
+  commands: [],
+  options: 
+   [ Option {
+       flags: '-V, --version',
+       required: 0,
+       optional: 0,
+       bool: true,
+       short: '-V',
+       long: '--version',
+       description: 'output the version number' },
+     Option {
+       flags: '-d, --dev',
+       required: 0,
+       optional: 0,
+       bool: true,
+       short: '-d',
+       long: '--dev',
+       description: 'dev model' } ],
+  _execs: {},
+  _allowUnknownOption: false,
+  _args: [],
+  _name: 'Electron',
+  Command: [Function: Command],
+  Option: [Function: Option],
+  _version: '0.1.0',
+  _events: { version: [ [Function], [Function] ], dev: [Function] },
+  _eventsCount: 2,
+  rawArgs: 
+   [ '',
+     '/Users/jianxun/.nvm/versions/node/v4.4.3/lib/node_modules/electron-prebuilt/dist/Electron.app/Contents/MacOS/Electron',
+     '.' ],
+  args: [ '.' ] }
+[34m20160916 17:06:56.041 INFO[0m #37721 sys (main.js:54:5) >>> 2 /Users/jianxun/workspace/mbook
+[36m20160916 17:06:56.771 DEBUG[0m #37721 sys (view/main.html:99:11) init default app
+[36m20160916 17:06:56.779 DEBUG[0m #37721 sys (view/main.html:50:13) loading controller:  /editor
+[36m20160916 17:06:57.049 DEBUG[0m #37721 sys (view/main.html:58:15) new controller:  {"bookRoot":"/Users/jianxun/workspace/mbook"}
+[33m20160916 17:06:57.059 WARN[0m #37721 sys (model/data/book.js:45:13) book.json not found
+[34m20160916 17:06:57.061 INFO[0m #37721 sys (controller/editor/index.js:48:9) init book model
+[34m20160916 17:06:57.066 INFO[0m #37721 sys (controller/editor/index.js:55:9) init book menu
+[34m20160916 17:06:57.263 INFO[0m #37721 sys (model/ui/editor.js:148:11) create new tab {}
+[34m20160916 17:06:57.265 INFO[0m #37721 sys (model/ui/editor.js:46:11) empty file
+[34m20160916 17:06:57.269 INFO[0m #37721 sys (controller/editor/index.js:62:9) init book editor
+[34m20160916 17:06:57.270 INFO[0m #37721 sys (controller/editor/index.js:73:9) init book preview
+[34m20160916 17:06:57.271 INFO[0m #37721 sys (controller/editor/index.js:25:9) app_editor inited
+[36m20160916 17:06:57.275 DEBUG[0m #37721 sys (view/main.html:60:15) resize
+[33m20160916 17:06:57.281 WARN[0m #37721 sys (model/ui/editor.js:165:9) editor resize
+[31m20160916 17:06:57.314 ERROR[0m #37721 sys (controller/editor/index.js:30:11) book init error Error: ENOENT: no such file or directory, open '/Users/jianxun/workspace/mbook/src/SUMMARY.md'
+    at Error (native)

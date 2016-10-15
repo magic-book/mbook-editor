@@ -164,13 +164,13 @@ class Editor extends UIBase {
   getTabByFile(file) {
     return this.tabs[file];
   }
-  paste(content, pos) {
-    this.editor.replaceRange(content, pos);
-    this.editor.setCursor({
-      line: pos.line,
-      ch: pos.ch + 2
-    });
+
+  insertCurrent(content) {
+    console.log(content);
+    let cursor = this.editor.getCursor();
+    this.editor.replaceRange(content, cursor);
   }
+
   resize() {
     log.warn('editor resize');
     let cnt = this.editCnt;

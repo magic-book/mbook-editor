@@ -23,9 +23,12 @@ class BookResource extends Events {
    * @param {Object} 其他参数，暂时无用
    */
   * saveFile(fileName, data, options) {
+    console.log(fileName, data);
     let filePath = yield this.genFileName(fileName);
     yield fsp.mkdirs(path.dirname(filePath));
     yield fsp.writeFile(filePath, data);
+
+    return filePath;
   }
   * genFileName(filename) {
     let ext = path.extname(filename);
@@ -33,10 +36,34 @@ class BookResource extends Events {
     let p = path.join(this.root, filename);
     let count = 1;
     while (yield fsp.exists(p)) {
-      p = path.join(this.root, nameWithoutExt, '_' + count, ext);
       count++;
     }
-    return p;
+    return path.join(this.root, nameWithoutExt + '_' + count + ext);
+  }
+  * getImageData(img) {
+    let imageBuffer, imageName, imageType, self = this;
+
+    if (typeof img != 'string') {
+      let nativeImage = img.nativeImage;
+      let imageHtml = img.html;
+      let matches = nativeImage.toDataURL().match(/^data:[A-Za-z-+]+\/([A-Za-z]+);base64,(.+)$/);
+      imageType = matches[1];
+      imageBuffer = new Buffer(matches[2], 'base64');
+      matches = imageHtml.match(/src=\".*\/([^\/\.\"]*).*\"/);
+      imageName = matches[1].replace(/[\?\;]/g, '_') + '.' + imageType;
+    } else {
+      let matches = img.match(/\/([^\/\.]*)\.(.+)$/);
+      if (matches) {
+        imageName = matches[1] + '.' + matches[2];
+        imageBuffer = yield fsp.readFile(img);
+      } else {
+        throw new Error('invalid image path: ', img);
+      }
+    }
+    return {
+      name: imageName,
+      buffer: imageBuffer
+    };
   }
   /**
    * ====== 请勿删除 =====

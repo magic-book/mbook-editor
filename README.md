@@ -41,10 +41,10 @@
     * delete book
 
   * bookedit
-    * open book
-    * menu (create/delete/edit/order chapter)
-    * edit file and save file
-    * preview file
+    * open book  [done]
+    * menu (create/delete/edit/order chapter)  [done]
+    * edit file and save file  [done]
+    * preview file [done]
 
   * tools
     * theme
@@ -54,6 +54,8 @@
     * git
       * commit
       * logs
+
+## parse
 
 ## LICENSE
 

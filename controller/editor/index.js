@@ -14,7 +14,7 @@ const Book = require('../../model/data/book');
 const Menu = require('../../model/ui/menu');
 const Editor = require('../../model/ui/editor');
 const Preview = require('../../model/ui/preview');
-const clipboard = require('electron').clipboard;
+const ClipBoard = require('../../model/data/clipboard');
 
 class AppEditor extends BaseCtrl {
   /**
@@ -67,6 +67,12 @@ class AppEditor extends BaseCtrl {
     let magic = new Magic(mmm.MAGIC_MIME_TYPE);
     this.magic = magic;
 
+    let clipboard = new ClipBoard({
+      book: book,
+      editor: editor,
+      magic: magic
+    });
+    this.clipboard = clipboard;
     /**
      * preview
      * @type {Preview}
@@ -121,49 +127,7 @@ class AppEditor extends BaseCtrl {
     });
     // 绑定黏贴事件
     window.addEventListener('paste', function (e) {
-      log.info('clipboard availableFormat:', clipboard.availableFormats());
-      log.info('clipboard content:', clipboard.readText(), clipboard.readHTML());
-
-      function * pasteImage(img) {
-        let imageData = yield self.book.res.getImageData(img);
-        let imagePath = yield self.book.res.saveFile(imageData.name, imageData.buffer);
-        self.editor.insertCurrent('![](' + imagePath + ')');
-      }
-
-      let dataFormats = clipboard.availableFormats();
-
-      if (dataFormats.length == 0) {
-        // TODO: use system tools to paste
-      } else if (dataFormats.lastIndexOf('image/png') != -1) {
-        co(pasteImage({
-          nativeImage: clipboard.readImage(),
-          html: clipboard.readHTML()
-        })).catch(function (e) {
-          log.error('save image to local error', e.stack);
-        });
-      /* TODO:in gnome, file in clipboard is saved as x-special/gnome-copied-files.
-       * electron clipboard can use readText to get its adsolute path.
-       * now i use libmagic to get the file mime type.
-       */
-      } else if (dataFormats.lastIndexOf('text/plain') != -1) {
-        let data = clipboard.readText();
-        try {
-          let buffer = fs.readFileSync(data);
-          e.preventDefault();
-          self.magic.detect(buffer, function (err, res) {
-            if (err) throw err;
-            if (res.startsWith('image')) {
-              co(pasteImage(data)).catch(function (e) {
-                log.error('copy local image to project error', e.stack);
-              });
-            } else {
-              log.error('unsupport file format');
-            }
-          });
-        } catch (e) {
-          // default text paste
-        }
-      }
+      self.clipboard.paste(e);
     }, true);
   }
   * load() {

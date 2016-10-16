@@ -2,6 +2,7 @@
 const fsp = require('fs-promise');
 const path = require('path');
 const Events = require('events');
+const log = require('../../lib/log');
 /**
  * @class BookRes
  */
@@ -20,15 +21,14 @@ class BookResource extends Events {
    * @param {String} referer 基于bookroot的路径，资源文件的引用
    * @param {String} file 基于bookroot的路径
    * @param {Buffer|String} data  文件内容
-   * @param {Object} 其他参数，暂时无用
+   * @param {Object} options 其他参数，暂时无用
    */
-  * saveFile(fileName, data, options) {
-    console.log(fileName, data);
-    let filePath = yield this.genFileName(fileName);
+  * saveFile(file, data) {
+    let fileName = yield this.genFileName(file);
+    let filePath = path.join(this.root, fileName);
     yield fsp.mkdirs(path.dirname(filePath));
     yield fsp.writeFile(filePath, data);
-
-    return filePath;
+    return '_res/' + fileName;
   }
   * genFileName(filename) {
     let ext = path.extname(filename);
@@ -38,20 +38,27 @@ class BookResource extends Events {
     while (yield fsp.exists(p)) {
       count++;
     }
-    return path.join(this.root, nameWithoutExt + '_' + count + ext);
+    return nameWithoutExt + '_' + count + ext;
   }
   * getImageData(img) {
-    let imageBuffer, imageName, imageType, self = this;
+    let imageBuffer;
+    let imageName;
+    let imageType;
 
-    if (typeof img != 'string') {
+    if (typeof img !== 'string') {
       let nativeImage = img.nativeImage;
       let imageHtml = img.html;
       let matches = nativeImage.toDataURL().match(/^data:[A-Za-z-+]+\/([A-Za-z]+);base64,(.+)$/);
       imageType = matches[1];
       imageBuffer = new Buffer(matches[2], 'base64');
-      matches = imageHtml.match(/src=\".*\/([^\/\.\"]*).*\"/);
-      imageName = matches[1].replace(/[\?\;]/g, '_') + '.' + imageType;
+      if (imageHtml) {
+        matches = imageHtml.match(/src=\".*\/([^\/\.\"]*).*\"/);
+        imageName = matches[1].replace(/[\?\;]/g, '_') + '.' + imageType;
+      } else {
+        imageName = new Date().getTime() + '.' + imageType;
+      }
     } else {
+      log.info('>>>> parse image', img);
       let matches = img.match(/\/([^\/\.]*)\.(.+)$/);
       if (matches) {
         imageName = matches[1] + '.' + matches[2];

@@ -50,30 +50,34 @@ class Menu extends UIBase {
       <div class="bookmenu"></div>
       <div class="contextmenu"></div>
     `);
-    let editBtn = options.container.find('.btn_edit');
     let menuList = options.container.find('.bookmenu');
 
     $(window).on('click', this.hideContextMenu.bind(this));
 
     this.cnt = menuList;
 
-    editBtn.on('click', function () {
-      let file = this.dataset.id;
-      self.emit('open_file', 'menu', file);
-    });
-
     menuList.on('click', function (e) {
       if (e.which !== 1) {
         // log.warn('menu right click');
         return;
       }
-      let file = e.target.dataset.id;
-      if (!file) {
-        log.warn('empty node');
+      let target = e.target;
+      if (target.tagName === 'I' && $(target).hasClass('icon')) {
+        $(target).toggleClass('icon_open');
+        while (target.tagName !== 'LI') {
+          target = target.parentNode;
+        }
+        $(target).find('ul.list').toggle().toggle;
         return;
       }
-      if (self.activeMenuItem(e.target)) {
-        self.emit('open_file', $(e.target).text(), file);
+      while (target.tagName !== 'A') {
+        target = target.parentNode;
+      }
+      let file = target.dataset.id;
+      let text = target.innerText;
+      if (self.activeMenuItem(target)) {
+        log.info('menu clicked:', text, '>', file);
+        self.emit('open_file', text, file);
       }
     });
 
@@ -268,6 +272,7 @@ class Menu extends UIBase {
           if (flag) {
             let origin = ctxMenuTarget.dataset.id;
             let newId = path.join(cwd, 'README.md');
+            ctxMenuTarget.dataset.id = newId;
             self.emit('rename_file', {
               src: origin,
               dest: newId
@@ -479,7 +484,7 @@ class Menu extends UIBase {
         cwd: cwd,
         text: node.text,
         className: 'level' + indent,
-        isdir: isDir
+        isDir: isDir
       }));
       if (isDir) {
         html = html.concat(
@@ -497,9 +502,9 @@ class Menu extends UIBase {
           data-id="${obj.id}"
           data-cwd="${obj.cwd}"
           class="${obj.className}"
-          title="${obj.text}" >
-          <i class="icon  dir_${obj.isdir}"></i>
-          <span class="name">${obj.text}</span>
+          title="${obj.text}" >` +
+          (obj.isDir ? '<i class="icon">▽</i>' : '') +
+          `<span class="name">${obj.text}</span>
         </a>
       `;
   }

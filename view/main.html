@@ -108,7 +108,6 @@
             options[k] = router.query[k];
           });
           lastApp = new Controller(options);
-          log.debug('resize');
           lastApp.resize && lastApp.resize();
           lastApp.on('scene', function (data) {
             ipcRenderer.sendSync('scene', data);

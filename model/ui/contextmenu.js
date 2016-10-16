@@ -16,9 +16,14 @@ $(window).on('click', function () {
 let ContextMenu = {
   show(menu, options, cb) {
     contextMenu.innerHTML = menu;
+    let y = options.y;
+    let menuHeight = $(contextMenu).height();
+    if (y >= $(window).height() - menuHeight) {
+      y = y - menuHeight;
+    }
     $(contextMenu).show().css({
       left: options.x + 'px',
-      top: options.y + 'px'
+      top: y + 'px'
     });
     this._cb = cb;
   },

@@ -16,8 +16,18 @@ const app = electron.app;  // Module to control application life.
 const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
 const os = require('os');
+const pkg = require('./package.json');
 
-log.info(process.versions);
+const versions = [
+  '\n==============',
+  'versions.app: ' + pkg.version,
+  'version.electron: ' + process.versions.electron,
+  'version.node: ' + process.versions.node,
+  'version.v8: ' + process.versions.v8,
+  'version.chrome: ' + process.versions.chrome,
+  '=============='
+];
+log.info('versions:', versions.join('\n'));
 
 function checkAbsPath(p) {
   let platform = os.platform();
@@ -77,14 +87,14 @@ app.on('ready', function () {
   let base = __dirname;
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 700,
     frame: false,
     show: false
   });
 
   mainWindow.once('ready-to-show', () => {
-    log.info('>>> win ready');
+    log.info('window is ready');
     mainWindow.show();
   });
 

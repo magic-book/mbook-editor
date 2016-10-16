@@ -2,7 +2,7 @@
 
 const fsp = require('fs-promise');
 const path = require('path');
-const EventEmitter = require('events').EventEmitter;
+const Events = require('events');
 const BookMenu = require('./book_menu');
 const BookRes = require('./book_res');
 const log = require('../../lib/log');
@@ -10,7 +10,7 @@ const log = require('../../lib/log');
 /**
  * @class Book
  */
-class Book extends EventEmitter {
+class Book extends Events {
   /**
    * @param  {Object} options
    *         - root {String} book abs root
@@ -58,8 +58,15 @@ class Book extends EventEmitter {
     return data.toString();
   }
   * saveFile(file, data) {
+    if (!path.extname(file)) {
+      return log.error('file should have .md ext');
+    }
     let fpath = path.join(this.src, file);
-    yield fsp.mkdirs(path.dirname(fpath));
+    let dpath = path.dirname(fpath);
+    let exists = yield fsp.exists(dpath);
+    if (!exists) {
+      yield fsp.mkdirs(dpath);
+    }
     yield fsp.writeFile(fpath, data);
   }
   * deleteFile(file) {

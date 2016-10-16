@@ -9,6 +9,7 @@
     .menu {
         flex: 1;
         background: #e3e3e3;
+        overflow: scroll;
     }
     .editor {
         flex: 2;
@@ -62,6 +63,22 @@
         margin: 1px;
         padding: 0xp;
 
+    }
+    .trewview .icon {
+        float: right;
+        font-size: 12px;
+        font-style: normal;
+        cursor: pointer;
+        padding: 0px 4px;
+        vertical-align: middle;
+        color: #aaa;
+        -webkit-transform: rotate(0deg);
+    }
+    .trewview .icon:hover {
+        color: #666;
+    }
+    .trewview .icon_open {
+        /* -webkit-transform: rotate(90deg); */
     }
     .trewview a:before{
         content: counters(num,'.') '. ';

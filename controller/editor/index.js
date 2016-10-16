@@ -80,13 +80,17 @@ class AppEditor extends BaseCtrl {
 
 
     this.menu.on('open_file', function (title, file) {
-      editor.createTab({
+      if (!file || !path.extname(file)) {
+        log.error('can not openfile when file is unknow or file without .md ext');
+      }
+      editor.openFile({
         file: file,
         title: title
       });
     });
 
     this.menu.on('rename_file', function (data, done) {
+      self.editor.renameFile(data);
       co(function* () {
         if (!Array.isArray(data)) {
           data = [data];
@@ -94,10 +98,10 @@ class AppEditor extends BaseCtrl {
         for (let i = 0; i < data.length; i++) {
           yield self.book.renameFile(data[i].src, data[i].dest);
         }
-        done();
+        done && done();
       }).catch(function (e) {
         log.error('rename file error', e);
-        done(e.message);
+        done && done(e.message);
       });
     });
 

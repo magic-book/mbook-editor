@@ -17,9 +17,9 @@ const UIBase = require('./ui_base');
 const co = require('co');
 
 /**
- * 编辑器Tabbin
+ * 编辑文件类
  */
-class TabEditor extends UIBase {
+class File extends UIBase {
   /**
    * @param  {Object} options
    *         - file {String}
@@ -34,46 +34,64 @@ class TabEditor extends UIBase {
     this.editor = options.editor;
     this._unsaved = false;
 
-    let self = this;
-
-    this.editor.on('change', function () {
-      self._unsaved = true;
-    });
+    this._change = (function () {
+      this._unsaved = true;
+    }).bind(this);
+    this.editor.on('change', this._change);
+    this.interval = setInterval(function () {
+      if (!this._unsaved) {
+        return;
+      }
+      co(this.save);
+    }, 5000);
   }
   load() {
     let self = this;
-    if (!self.file || self.file === 'untitled') {
+    if (!this.file) {
       log.info('empty file');
-      self.value = '';
+      this.value = '';
+      this.editor.setOption('readOnly', true);
       return;
     }
-    log.info('load file to editor');
+    this.editor.setOption('readOnly', false);
+
     co(function *() {
       let v = yield self.book.loadFile(self.file);
       self.value = v;
     }).catch(function (e) {
-      if (e.code === 'ENOENT') {
+      if (e.code === 'ENOENT' || e.code === 'ENOTDIR') {
         self.value = '';
       } else {
-        log.error(e);
+        log.error('editor loading file content failed:', e.stack);
       }
     });
   }
   * save() {
     let self = this;
     this._unsaved = false;
-    if (this.file === 'untitled') {
-      // popup rename dialog
+    if (!this.file) {
       return;
     }
     yield self.book.saveFile(self.file, self.value);
-    log.info();
   }
   get value() {
     return this.editor.getValue();
   }
   set value(v) {
     this.editor.setValue(v);
+  }
+  * close(doNotSave) {
+    clearInterval(this.interval);
+    if (!doNotSave) {
+      yield this.save();
+      log.info(`file saved: ${this.file}`);
+    }
+    this.interval = null;
+    this.file = null;
+    this.title = null;
+    this.book = null;
+    this.editor.off('change', this._change);
+    this.editor = null;
   }
 }
 /**
@@ -85,7 +103,6 @@ class Editor extends UIBase {
     let self = this;
     let editorContainer = options.container;
 
-    this.tabs = {};
     this.book = options.book;
     this.editCnt = editorContainer;
     // editorContainer.css;
@@ -116,53 +133,60 @@ class Editor extends UIBase {
       styleActiveLine: true,
       showCursorWhenSelecting: true,
       matchBrackets: true,
+      readOnly: true,
       extraKeys: {
         'Cmd-S': function () {
-          if (!self.currentTab) {
+          if (!self.currentFile) {
             return;
           }
           co(function* () {
-            yield self.currentTab.save();
-            self.emit('save', self.currentTab.file, self.currentTab.value);
+            yield self.currentFile.save();
+            self.emit('save', self.currentFile.file, self.currentFile.value);
           }).catch(function (e) {
             log.error('save file error:', e.message);
           });
         }
       }
     });
-
-
     editor.on('change', function () {
-      if (!self.currentTab) {
+      if (!self.currentFile) {
         return;
       }
-      self.emit('change', self.currentTab.file, self.editor.getValue());
+      self.emit('change', self.currentFile.file, self.editor.getValue());
     });
 
     this.editor = editor;
-    this.createTab();
   }
-  createTab(data) {
-    data = data || {};
-    let file = data.file || 'untitled';
+  renameFile(data) {
+    if (!this.currentFile) {
+      return;
+    }
+    if (this.currentFile.file === data.src) {
+      this.currentFile.file = data.dest;
+    }
+  }
+  openFile(data) {
     let self = this;
-    let tab = this.getTabByFile(file);
-    if (!tab) {
-      log.info('create new tab', data);
-      tab = new TabEditor({
-        file: file,
-        title: data.title,
+    let fileName = data.file;
+    co(function* () {
+      if (self.currentFile) {
+        log.info('close old file:', self.currentFile.file);
+        yield self.currentFile.close();
+      }
+      log.info('load new file:', fileName);
+      data = data || {};
+      let file = new File({
+        file: fileName,
+        title: data.title || 'untitled',
         book: self.book,
         editor: self.editor
       });
-    }
-    this.tabs[file] = tab;
-    this.currentTab = tab;
-    tab.load();
-    return tab;
-  }
-  getTabByFile(file) {
-    return this.tabs[file];
+      self.currentFile = file;
+
+      file.load();
+    }).catch(function (e) {
+      log.error(e);
+    });
   }
 
   insertCurrent(content) {

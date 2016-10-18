@@ -17,7 +17,8 @@
     "litelog": "1.1.1",
     "marked": "^0.3.5",
     "mmmagic": "^0.4.5",
-    "xfs": "^0.2.1"
+    "xfs": "^0.2.1",
+    "request": "2.75.0"
   },
   "devDependencies": {
     "electron-packager": "8.1.0",

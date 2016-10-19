@@ -15,13 +15,13 @@ class ClipBoard {
   paste(e) {
     let self = this;
     clipboardio.paste(res => {
-      co(function *(){
+      co(function* () {
         let imagePath = yield self.book.res.saveFile(res.name, res.buffer);
         self.editor.insertCurrent('![](' + imagePath + ')');
       }).catch(function (e) {
         log.error('save image to local error', e.stack);
       });
-    })
+    });
     e.preventDefault();
     // let dataFormats = clipboard.availableFormats().reverse();
     // log.info('clipboard availableFormat:', dataFormats);
@@ -33,7 +33,7 @@ class ClipBoard {
     //   self.editor.insertCurrent('![](' + imagePath + ')');
     // }
 
-    
+
 
     // if (dataFormats.length == 0) {
     //   // TODO: use system tools to paste

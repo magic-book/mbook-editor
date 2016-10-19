@@ -57,7 +57,7 @@ class Home extends BaseCtrl {
                     <p class="name">${item.name}</p>
                     <p class="owner">${item.owner}</p>
                   </div>
-                </li>`
+                </li>`;
       },
       trigerTpl: `<li>
                     <div class="cover">
@@ -97,7 +97,7 @@ class Home extends BaseCtrl {
                 </div>
               `;
       }
-    }
+    };
   }
 
   createDOM(bookspaces) {
@@ -107,14 +107,14 @@ class Home extends BaseCtrl {
     this.modalbox.jqm({
       trigger: '.j-trigger-newBook',
       closeClass: 'j-trigger-closemodal',
-      onHide(hash){
+      onHide(hash) {
         hash.w.hide() && hash.o && hash.o.remove();
       }
     });
     this.container.on('click', '.j-trigger-createBook', e => {
       let inp = this.modalbox.find('input');
       let val = inp.val();
-      if(val){
+      if (val) {
         let bookRoot = path.join(Bookspace.DIR, val);
         let branch = this.bookspace.save(bookRoot);
         branch && this.container.find('.bookspaces').append(this.tplOpt.getBookspaceTpl(branch));
@@ -129,7 +129,7 @@ class Home extends BaseCtrl {
       if (bookPath) {
         bookRoot = path.resolve(bookPath);
       } else {
-        let bookDir = dialog.showOpenDialog({ properties: ['openDirectory'] });
+        let bookDir = dialog.showOpenDialog({properties: ['openDirectory']});
         bookRoot = bookDir && bookDir[0];
         bookRoot && this.bookspace.save({
           name: bookRoot.split(path.sep).pop(),
@@ -152,17 +152,16 @@ class Home extends BaseCtrl {
       let bookPath = bookTgr.data('path');
       this.bookspace.remove(path.resolve(bookPath));
 
-      bookTgr.closest('li').remove();      
-    })
-
+      bookTgr.closest('li').remove();
+    });
   }
   renderUI() {
     this.container = $('.j-con-home');
-    this.bookspace = new Bookspace()
+    this.bookspace = new Bookspace();
 
     this.createDOM(this.bookspace.retrieve(Bookspace.TYPES.local));
     this.modalbox = this.container.find('.j-trigger-createmodal');
-    this.bindUI()
+    this.bindUI();
   }
 
 

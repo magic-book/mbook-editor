@@ -1,3 +1,5 @@
+'use strict';
+
 const fs = require('fs');
 const path = require('path');
 const request = require('request');
@@ -11,46 +13,48 @@ const fsp = require('fs-promise');
  * all mime types
  * see: https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types
 */
-const all_mime_types = {
+const allMimeTypes = {
   image: 'image/png',
   text: 'text/plain',
   html: 'text/html',
   rtf: 'text/rtf'
-}
+};
 // see: http://stackoverflow.com/questions/4482686/check-synchronously-if-file-directory-exists-in-node-js?answertab=active#tab-top
-function checkIsAFile(text){
+function checkIsAFile(text) {
   try {
     let stats = fs.lstatSync(text);
     // Is it a directory?
     if (!stats.isDirectory()) {
-      switch(path.extname(text)){
+      switch (path.extname(text)) {
         case 'png':
         case 'jpg':
-          return all_mime_types.image;
+          return allMimeTypes.image;
         default:
           break;
       }
     }
-  } catch (e) { }
+  } catch (e) {
+    //
+  }
 }
 
 // <meta charset='utf-8'><img src="[path].png_[^\.]*.jpg"/>
-const dingding_image_regexp = /<meta[^>]*><img\s*src="([^"]*)"\s*\/>/;
-function checkImageFromDingDing(html){
-  let mt = html.match(dingding_image_regexp);
-  if(mt){
+const dingdingImageRegexp = /<meta[^>]*><img\s*src="([^"]*)"\s*\/>/;
+function checkImageFromDingDing(html) {
+  let mt = html.match(dingdingImageRegexp);
+  if (mt) {
     return mt[1];
   }
 }
- 
+
 /**
  * check all mime types
  * see: https://github.com/dmfarcas/clipboard-manager/blob/master/assets/index.js
  */
 function checkFormat(contentTypes) {
-  contentTypes =  contentTypes || clipboard.availableFormats();
+  contentTypes = contentTypes || clipboard.availableFormats();
 
-  switch(true){
+  switch (true) {
     /**
      * 符合图片类型，直接粘贴图片内容
      * 1. 本地图片粘贴，有text内容
@@ -58,7 +62,7 @@ function checkFormat(contentTypes) {
      * 3. 复制mockup等软件, 其text===html，所以不能用来识别名字
      * 4. 复制omnigraffle等软件内容，自动复制成图片内容
      */
-    case contentTypes.indexOf(all_mime_types.image) > -1:
+    case contentTypes.indexOf(allMimeTypes.image) > -1:
       return {
         name: 'pasteImage',
         cfg: {
@@ -72,58 +76,61 @@ function checkFormat(contentTypes) {
      * 2. 网页图片地址
      * 3. 本地或者网页其他文件地址，比如doc, docx, xmind等（复制xmind内容实际上是文本）
      */
-    case contentTypes.indexOf(all_mime_types.text) > -1:
+    case contentTypes.indexOf(allMimeTypes.text) > -1: {
       let text = clipboard.readText();
       let result = checkIsAFile(text);
-      if(result === all_mime_types.image){
+      if (result === allMimeTypes.image) {
         return {
           name: 'pasteImage',
           cfg: {
             path: text
           }
-        }
-      }else{
+        };
+      } else {
         return {
           name: 'pasteText',
           cfg: {
             text: text
           }
-        }
+        };
       }
+    }
     /**
      * 符合html类型
      * 1. 直接复制网页内容来粘贴
      * 2. 复制钉钉图片来粘贴，此时只有html包含了图片地址
      */
-    case contentTypes.indexOf(all_mime_types.html) > -1:
+    case contentTypes.indexOf(allMimeTypes.html) > -1: {
       let html = clipboard.readHTML();
       let url = checkImageFromDingDing(html);
-      if(contentTypes.indexOf('mediaid') > -1 && url){
+      if (contentTypes.indexOf('mediaid') > -1 && url) {
         return {
           name: 'pasteImage',
           cfg: {
             url: url.split('?')[0]
           }
-        }
-      }else{
+        };
+      } else {
         return {
           name: 'pasteHtml',
           cfg: {
             html: html
           }
-        }
+        };
       }
+    }
     /**
      * 富文本类型
      */
-    case contentTypes.indexOf(all_mime_types.rtf) > -1:
+    case contentTypes.indexOf(allMimeTypes.rtf) > -1: {
       let rtf = clipboard.readRTF();
       return {
         name: 'pasteRTF',
         cfg: {
           rtf: rtf
         }
-      }
+      };
+    }
     default:
       break;
   }
@@ -131,7 +138,7 @@ function checkFormat(contentTypes) {
 
 
 const pasteFuncObj = {
-  * pasteImage(cfg){
+  * pasteImage(cfg) {
     let result = {
       buffer: null,
       name: null,
@@ -139,9 +146,9 @@ const pasteFuncObj = {
     };
     // http://stackoverflow.com/questions/125813/how-to-determine-the-os-path-separator-in-javascript
     // path.sep instead of /
-    switch(true){
+    switch (true) {
       // see: http://stackoverflow.com/questions/6926016/nodejs-saving-a-base64-encoded-image-to-disk?answertab=active#tab-top
-      case !!cfg.nativeImage:
+      case !!cfg.nativeImage: {
         let matches = cfg.nativeImage.toDataURL().match(/^data:[A-Za-z-+]+\/([A-Za-z]+);base64,(.+)$/);
         result.extname = matches[1];
         result.buffer = new Buffer(matches[2], 'base64');
@@ -151,63 +158,66 @@ const pasteFuncObj = {
           result.name = new Date().getTime() + '.' + result.extname;
         }
         break;
-      case !!cfg.path:
+      }
+      case !!cfg.path: {
         result.name = cfg.path.split(path.sep).pop();
         result.extname = path.extname(result.name);
         result.buffer = yield fsp.readFile(cfg.path);
         break;
-      case !!cfg.url:
+      }
+      case !!cfg.url: {
         result.name = cfg.url.split(path.sep).pop();
         result.extname = path.extname(result.name);
 
         // [path]/lALOe-SVAczCzQQ1_1077_194.png_620x10000q90.jpg
         // get the real filename
         let name = result.name.slice(0, -result.extname.length);
-        if(name.indexOf('.') > -1){
+        if (name.indexOf('.') > -1) {
           let extname = path.extname(name);
           result.extname = extname.split('_')[0];
           result.name = name.slice(0, -extname.length) + result.extname;
         }
-        result.buffer = yield new Promise( (resolve, reject) => {
+        result.buffer = yield new Promise((resolve, reject) => {
           request({
             method: 'GET',
             uri: cfg.url,
             encoding: null
           }, (err, res) => {
-            if(err){
+            if (err) {
               reject(err);
-            }else{
+            } else {
               result.buffer = res.body;
               resolve(result);
             }
-          })
+          });
         });
+      }
         break;
       default:
         break;
     }
     return result;
   }
-}
+};
 
 
 
-exports.paste = function(callback){
-  let opt = checkFormat(); 
+exports.paste = function (callback) {
+  let opt = checkFormat();
 
-  if(opt && pasteFuncObj[opt.name]){
+  if (opt && pasteFuncObj[opt.name]) {
     let result = pasteFuncObj[opt.name](opt.cfg).next();
-    if(result.value.then){
+    if (result.value.then) {
       result.value.then(callback);
-    }else{
+    } else {
       callback && callback(result.value)
     }
   }
-}
+};
 
-exports.copy = function(){
+exports.copy = function () {
 
-}
+};
 
 
 
@@ -218,9 +228,9 @@ exports.copy = function(){
  *  - writeText, readText, readHTML, writeHTML
  *  - readImage => nativeImage, writeImage
  *  - readRTF, writeRTF, readBookmark, writeBookmark
- *  - clear, availableFormats, has, read, write 
+ *  - clear, availableFormats, has, read, write
  * see: https://github.com/electron/electron/blob/master/docs/api/clipboard.md
- * 
+ *
  * nativeImage, BrowserWindow, Tray, Buffer
  *  - supported format: png, jpeg
  *  - icon: (16, 20, 24, 32) ^ 2 for small, (32, 40, 48, 64) ^ 2 for large
@@ -232,11 +242,11 @@ exports.copy = function(){
 
 /**
  * @imports
- * 1. co 
+ * 1. co
  *  * yieldables
  *  * promises,
  *  * arrays
  *  * objects
  *  * generators
- * @see: https://www.npmjs.com/package/co#var-fn--cowrapfn 
+ * @see: https://www.npmjs.com/package/co#var-fn--cowrapfn
  */

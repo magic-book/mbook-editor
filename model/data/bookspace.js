@@ -8,7 +8,16 @@ const fs = require('fs');
 class Bookspace {
   constructor() {
     this.dirStorage = new Storage(Bookspace.DIR);
-    this.fileStorage = new Storage(path.join(Bookspace.DIR, 'bookspace.json'));
+
+    let bookspaceJsonPath = path.join(Bookspace.DIR, 'bookspace.json');
+    if (!fs.existsSync(bookspaceJsonPath)) {
+      fs.writeFileSync(bookspaceJsonPath, fs.readFileSync(path.join(Bookspace.DIR, 'bookspace.template.json')));
+    }
+    this.fileStorage = new Storage(bookspaceJsonPath, {
+      name: 'Mbook',
+      description: '',
+      bookspaces: []
+    });
 
     this.data = this.fileStorage.getData();
   }

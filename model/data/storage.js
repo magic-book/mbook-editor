@@ -50,14 +50,14 @@ class Storage {
         type: 1,
         objectType: null,
         children: []
-      }
+      };
     } else {
       if (relativePath[0] !== '.') {
         return {
           name: relativePath,
           type: 2,
           objectType: this.checkFileType(relativePath)
-        }
+        };
       }
     }
   }

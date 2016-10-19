@@ -19,3 +19,7 @@ Session.vim
 # Node
 npm-debug.log
 /build
+
+example/src/_res
+
+bookspace.json

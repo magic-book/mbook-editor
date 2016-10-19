@@ -1,0 +1,16 @@
+# http://editorconfig.org
+# 支持多个不同的IDE，如果使用的IDE不同，IDE默认设定编码格式也不同，editorconfig跟项目走，只要IDE支持editconfig就能保证所有编码风格统一，比如tab为2个空格。
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+experimentalDecorators=false
+
+[*.md]
+insert_final_newline = false
+trim_trailing_whitespace = false

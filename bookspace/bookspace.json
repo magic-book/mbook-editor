@@ -1,0 +1,26 @@
+{
+  "name": "Mbook",
+  "description": "",
+  "bookspaces": [
+    {
+      "name": "example",
+      "icon": "",
+      "path": "./example",
+      "type": "local",
+      "owner": "import"
+    },
+    {
+      "type": "history",
+      "owner": "import",
+      "name": "btest",
+      "path": "/Users/zhushengjia/Desktop/drive/projects/f2e/websoft/btest"
+    },
+    {
+      "name": "test",
+      "path": "/Users/zhushengjia/Desktop/drive/projects/f2e/websoft/mbook/bookspace/test",
+      "type": "local",
+      "icon": "",
+      "owner": "import"
+    }
+  ]
+}

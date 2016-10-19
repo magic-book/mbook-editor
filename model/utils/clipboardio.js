@@ -20,7 +20,7 @@ const all_mime_types = {
 // see: http://stackoverflow.com/questions/4482686/check-synchronously-if-file-directory-exists-in-node-js?answertab=active#tab-top
 function checkIsAFile(text){
   try {
-    stats = fs.lstatSync(text);
+    let stats = fs.lstatSync(text);
     // Is it a directory?
     if (!stats.isDirectory()) {
       switch(path.extname(text)){

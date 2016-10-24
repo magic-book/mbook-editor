@@ -15,12 +15,15 @@ class Storage {
     this.data = null;
   }
 
-  constructor(fileOrDirectory) {
+  resolve(resolvePath) {
+    this.resolvePath = path.resolve(resolvePath);
+  }
+
+  constructor(fileOrDirectory, defaultData) {
     this._sync();
 
-    this.resolvePath = path.resolve(fileOrDirectory);
-
     try {
+      this.resolve(fileOrDirectory);
       let stats = fs.lstatSync(this.resolvePath);
       this.isDirectory = stats.isDirectory();
       if (this.isDirectory) {
@@ -29,7 +32,10 @@ class Storage {
         this.data = JSON.parse(fs.readFileSync(this.resolvePath));
       }
     } catch (e) {
-      log.error(e.stack);
+      if (defaultData && path.extname(fileOrDirectory)) {
+        this.data = defaultData;
+      }
+      // log.error(e.stack);
     }
   }
 

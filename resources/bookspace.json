@@ -1,0 +1,15 @@
+{
+  "name": "Mbook",
+  "description": "",
+  "bookspacePath": "",
+  "bookJson": {
+    "name": "tmp",
+    "type": "local",
+    "icon": "",
+    "owner": "import",
+    "theme": ""
+  },
+  "themes": [
+    "base"
+  ]
+}

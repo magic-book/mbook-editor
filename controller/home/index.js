@@ -7,6 +7,19 @@ const path = require('path');
 const BaseCtrl = require('../base_controller');
 const {dialog} = require('electron').remote;
 require('jqmodal');
+let defaultPath;
+switch (process.platform) {
+  case 'linux':
+  case 'darwin':
+    defaultPath = '~/documents/bookspace/';
+    break;
+  case 'win32':
+    defaultPath = 'C:\documents\bookspace';
+    break;
+  default:
+    break;
+}
+
 
 const Bookspace = require('../../model/data/bookspace');
 
@@ -95,13 +108,32 @@ class Home extends BaseCtrl {
                     </div>
                   </div>
                 </div>
+                <div class="modalContainer j-trigger-bookspacemodal">
+                  <div class="modal j-trigger-createmodal">
+                    <div class="modal-heading">
+                      <h4>Create Bookspace</h4>
+                    </div>
+                    <div class="modal-body">
+                      <div class="modal-form">
+                        <label>Bookspace Path</label>
+                        <div class="elem-choice"><input type="text" value="${data.defaultPath}" class="elem-choiceinp" placeholder="My Awesome Bookspace Path"/><button class="j-trigger-choicedir">Choice</button></div>
+                        <p class="help-block">It will set the path as bookspace on this computer</p>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="j-trigger-bookspace">Submit</button>
+                    </div>
+                  </div>
+                </div>
               `;
       }
     };
   }
 
   createDOM(bookspaces) {
-    this.container.html(this.tplOpt.getBookspacesTpl(bookspaces) + this.tplOpt.dialogTpl());
+    this.container.html(this.tplOpt.getBookspacesTpl(bookspaces) + this.tplOpt.dialogTpl({
+      defaultPath: defaultPath
+    }));
   }
   bindUI() {
     this.modalbox.jqm({
@@ -129,7 +161,7 @@ class Home extends BaseCtrl {
       if (bookPath) {
         bookRoot = path.resolve(bookPath);
       } else {
-        let bookDir = dialog.showOpenDialog({properties: ['openDirectory']});
+        let bookDir = dialog.showOpenDialog({ properties: ['openDirectory'] });
         bookRoot = bookDir && bookDir[0];
         bookRoot && this.bookspace.save({
           name: bookRoot.split(path.sep).pop(),
@@ -154,12 +186,35 @@ class Home extends BaseCtrl {
 
       bookTgr.closest('li').remove();
     });
+
+    this.container.on('click', '.j-trigger-choicedir', e => {
+      let bookspaceDir = dialog.showOpenDialog({ properties: ['openDirectory'], defaultPath: defaultPath });
+      if (bookspaceDir && bookspaceDir[0]) {
+        this.container.find('.elem-choiceinp').val(bookspaceDir[0]);
+      }
+    });
+    this.container.on('click', '.j-trigger-bookspace', e => {
+      let val = this.container.find('.elem-choiceinp').val();
+      if (val) {
+        this.bookspace.setBookspace(val);
+        this.container.find('.j-trigger-bookspacemodal').jqmHide();
+
+        this.container.find('.bookspaces').remove();
+        this.container.prepend(this.tplOpt.getBookspacesTpl(this.bookspace.retrieve(Bookspace.TYPES.local)));
+      }
+    });
   }
   renderUI() {
     this.container = $('.j-con-home');
     this.bookspace = new Bookspace();
-
     this.createDOM(this.bookspace.retrieve(Bookspace.TYPES.local));
+
+    if (!this.bookspace.bookspaceJson.bookspacePath) {
+      let modal = this.container.find('.j-trigger-bookspacemodal');
+      modal.jqm();
+      modal.jqmShow();
+    }
+
     this.modalbox = this.container.find('.j-trigger-createmodal');
     this.bindUI();
   }

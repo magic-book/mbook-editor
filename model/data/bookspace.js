@@ -3,9 +3,40 @@
 const Storage = require('./storage');
 const path = require('path');
 const fs = require('fs');
-
+const os = require('os');
+const log = require('../../lib/log');
 
 class Bookspace {
+  constructor() {
+    this.bookspaceJson = JSON.parse(fs.readFileSync(path.join(Bookspace.RESOURCE_DIR, 'bookspace.json')));
+
+    if (!this.bookspaceJson.bookspacePath || !fs.existsSync(this.bookspaceJson.bookspacePath) || !fs.lstatSync(this.bookspaceJson.bookspacePath).isDirectory()) {
+      if(!fs.existsSync(Bookspace.defaultBookSpace)){
+        fs.mkdirSync(Bookspace.defaultBookSpace);  
+      }
+      this.bookspaceJson.bookspacePath = Bookspace.defaultBookSpace;
+    }
+    this.initStorages();
+    this.books = [];
+    this.setBooks();
+  }
+
+  get bookspacePath(){
+    return this.bookspaceJson.bookspacePath;
+  }
+
+  initStorages(){
+    log.info('boosapce path: ' + path.join(this.bookspaceJson.bookspacePath, 'bookspace.json'));
+    this.dirStorage = new Storage(this.bookspaceJson.bookspacePath);
+    this.fileStorage = new Storage(path.join(this.bookspaceJson.bookspacePath, 'bookspace.json'), {
+      name: 'Mbook',
+      description: '',
+      bookspaces: {},
+      historyBookspaces: {}
+    });
+    this.data = this.fileStorage.getData();
+  }  
+
   setBookspace(bookspacePath) {
     if (this.bookspaceJson.bookspacePath) return;
 
@@ -54,23 +85,6 @@ class Bookspace {
     callback && callback();
   }
 
-  constructor() {
-    this.bookspaceJson = JSON.parse(fs.readFileSync(path.join(Bookspace.RESOURCE_DIR, 'bookspace.json')));
-    this.dirStorage = new Storage(this.bookspaceJson.bookspacePath);
-
-    this.fileStorage = new Storage(path.join(this.bookspaceJson.bookspacePath, 'bookspace.json'), {
-      name: 'Mbook',
-      description: '',
-      bookspaces: {},
-      historyBookspaces: {}
-    });
-
-    this.data = this.fileStorage.getData();
-    this.books = [];
-    if (this.bookspaceJson.bookspacePath) {
-      this.setBooks();
-    }
-  }
 
   pack(bookspace, isRemove) {
     let bookspacePath = Object(bookspace) === bookspace ? bookspace.path : bookspace;
@@ -100,7 +114,7 @@ class Bookspace {
       }
     } else {
       let branch = this.books.find(item => item.path === bookspacePath);
-
+      log.info('book path is exist? ' + JSON.stringify(branch));
       if (branch) {
         let oldType = branch.type;
         if (bookspacePath === bookspace) {
@@ -130,8 +144,11 @@ class Bookspace {
           }, bookspace);
         }
         // todo: bookspace.path is remote url
+        log.info('new book path: ' + bookspacePath);
         if (!fs.existsSync(bookspacePath) || !fs.lstatSync(bookspacePath).isDirectory()) {
-          this.dirStorage.save(bookspacePath)
+          this.dirStorage.save(bookspacePath);
+          let bookJson = this.bookspaceJson.bookJson;
+          fs.writeFileSync(path.join(bookspacePath, 'book.json'), JSON.stringify(Object.assign(branch, bookJson), null ,2));
         }
         this.books.push(branch);
         this.data.bookspaces[branch.name] = bookspacePath;
@@ -168,4 +185,5 @@ Bookspace.TYPES = {
   delete: 'delete'
 };
 
+Bookspace.defaultBookSpace = path.join(os.homedir(), 'documents/bookspace');
 module.exports = Bookspace;

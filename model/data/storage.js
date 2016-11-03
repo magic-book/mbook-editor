@@ -85,6 +85,7 @@ class Storage {
   }
 
   save(data) {
+    log.info('save file or directory: ' + JSON.stringify(data));
     if (this.isDirectory) {
       fs.mkdirSync(data);
       let relativePath = data.split(path.sep).pop();

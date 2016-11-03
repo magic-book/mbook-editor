@@ -7,18 +7,6 @@ const path = require('path');
 const BaseCtrl = require('../base_controller');
 const {dialog} = require('electron').remote;
 require('jqmodal');
-let defaultPath;
-switch (process.platform) {
-  case 'linux':
-  case 'darwin':
-    defaultPath = '~/documents/bookspace/';
-    break;
-  case 'win32':
-    defaultPath = 'C:\documents\bookspace';
-    break;
-  default:
-    break;
-}
 
 
 const Bookspace = require('../../model/data/bookspace');
@@ -132,7 +120,7 @@ class Home extends BaseCtrl {
 
   createDOM(bookspaces) {
     this.container.html(this.tplOpt.getBookspacesTpl(bookspaces) + this.tplOpt.dialogTpl({
-      defaultPath: defaultPath
+      defaultPath: Bookspace.defaultBookSpace
     }));
   }
   bindUI() {
@@ -147,7 +135,7 @@ class Home extends BaseCtrl {
       let inp = this.modalbox.find('input');
       let val = inp.val();
       if (val) {
-        let bookRoot = path.join(Bookspace.DIR, val);
+        let bookRoot = path.join(this.bookspace.bookspacePath, val);
         let branch = this.bookspace.save(bookRoot);
         branch && this.container.find('.bookspaces').append(this.tplOpt.getBookspaceTpl(branch));
         this.modalbox.jqmHide();
@@ -188,7 +176,7 @@ class Home extends BaseCtrl {
     });
 
     this.container.on('click', '.j-trigger-choicedir', e => {
-      let bookspaceDir = dialog.showOpenDialog({ properties: ['openDirectory'], defaultPath: defaultPath });
+      let bookspaceDir = dialog.showOpenDialog({ properties: ['openDirectory'], defaultPath: Bookspace.defaultBookSpace });
       if (bookspaceDir && bookspaceDir[0]) {
         this.container.find('.elem-choiceinp').val(bookspaceDir[0]);
       }
@@ -209,7 +197,7 @@ class Home extends BaseCtrl {
     this.bookspace = new Bookspace();
     this.createDOM(this.bookspace.retrieve(Bookspace.TYPES.local));
 
-    if (!this.bookspace.bookspaceJson.bookspacePath) {
+    if (!this.bookspace.bookspacePath) {
       let modal = this.container.find('.j-trigger-bookspacemodal');
       modal.jqm();
       modal.jqmShow();

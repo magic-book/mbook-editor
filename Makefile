@@ -10,12 +10,14 @@ else
 	ifeq ($(UNAME_S),Linux)
 		PLATFORM = linux
 	else
-		PLATFORM = unknow
+		PLATFORM = win32
 	endif
 endif
 
 UNAME_M := $(shell uname -m)
 ifeq ($(UNAME_M), x86_64)
+	ARCH = x64
+else ifeq ($(UNAME_M), i686)
 	ARCH = x64
 else
 	ifeq ($(UNAME_M), x86)

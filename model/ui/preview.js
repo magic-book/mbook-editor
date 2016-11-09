@@ -1,5 +1,5 @@
 'use strict';
-const marked = require('marked');
+const marked = require('../../lib/marked');
 const UIBase = require('./ui_base');
 const log = require('../../lib/log');
 const path = require('path');
@@ -32,6 +32,8 @@ class Preview extends UIBase {
       }
     });
     this.cnt = options.container.find('.inner');
+    this.outerCnt = options.container;
+    this.currentLine = 0;
   }
   /**
    * render markstring
@@ -44,6 +46,37 @@ class Preview extends UIBase {
         return log.error(err);
       }
       self.cnt.html(data);
+      self.buildMap();
+    });
+  }
+  buildMap() {
+    let map = {};
+    this.cnt.find('line').each(function () {
+      let tmp = this.getAttribute('num');
+      map[tmp] = this.offsetTop;
+    });
+    this.map = map;
+  }
+  findLine(line) {
+    while (!this.map[line]) {
+      line--;
+      if (line < 0) {
+        line = 0;
+        break;
+      }
+    }
+    return line;
+  }
+  scrollToFlag(data) {
+    let line = data.line + 1;
+    let targetLine = this.findLine(line);
+    let offset = this.map[targetLine] || 0;
+    log.debug('preview scroll:', line, targetLine, offset);
+    if (offset === this.outerCnt.scrollTop()) {
+      return;
+    }
+    this.outerCnt.stop(true).animate({
+      scrollTop: offset + 'px'
     });
   }
 }

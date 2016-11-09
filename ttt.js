@@ -1,9 +1,33 @@
-var fs = require('fs');
+'use strict';
 
-var stream = fs.createWriteStream('aaa.js');
-stream.write('xxx');
-stream.end();
+const marked = require('./lib/marked');
 
-var http= require('http');
+marked.setOptions({
+  renderer: new marked.Renderer(),
+  gfm: true,
+  tables: true,
+  breaks: false,
+  pedantic: false,
+  sanitize: true,
+  smartLists: true,
+  smartypants: false
+});
 
-http.createServer(function() {}).listen(8901);
+let markdown = `
+
+## Test
+
+\`\`\`
+this is code
+\`\`\`
+
+| name | test |
+| -- | -- |
+| test | asd |
+
+`;
+
+marked(markdown, function (err, content) {
+  if (err) throw err;
+  console.log(content);
+});

@@ -125,6 +125,12 @@ class AppEditor extends BaseCtrl {
         });
       }
     });
+
+    this.editor.on('scroll', function (data) {
+      preview.scrollToFlag({
+        line: data.line
+      });
+    });
     // 绑定黏贴事件
     window.addEventListener('paste', function (e) {
       self.clipboard.paste(e);

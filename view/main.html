@@ -30,18 +30,40 @@
           font-weight: bold;
           font-size: 20px;
         }
-        .titlebar .btn_close {
+        .titlebar .btns {
           display: block;
-          width: 17px;
-          height: 17px;
           position: absolute;
           right: 10px;
           top: 10px;
-          background: url(./imgs/button_close.png) transparent 0px 0px;
+        }
+        .titlebar .btns a {
+          display: inline-block;
+          width: 17px;
+          height: 17px;
           -webkit-app-region: no-drag;
+          margin-left: 8px;
+        }
+        .titlebar .btns a:hover {
+          background-color: rgba(255,255,255, 0.2);
+          border-radius: 2px;
+        }
+        .titlebar .btn_max {
+          background: url(./imgs/btn_max.png) transparent 0px 0px;
+        }
+        .titlebar .btn_max:hover {
+          background-image: url(./imgs/btn_max_hover.png)
+        }
+        .titlebar .btn_min {
+          background: url(./imgs/btn_min.png) transparent 0px 0px;
+        }
+        .titlebar .btn_min:hover {
+          background-image: url(./imgs/btn_min_hover.png)
+        }
+        .titlebar .btn_close {
+          background: url(./imgs/btn_close.png) transparent 0px 0px;
         }
         .titlebar .btn_close:hover {
-          background-image: url(./imgs/button_close_hover.png)
+          background-image: url(./imgs/btn_close_hover.png)
         }
         #contextmenu {
           display: none;
@@ -63,7 +85,11 @@
   <body>
     <div class="titlebar dragable">
       <span class="title">Mbook</span>
-      <a class="btn_close" onclick="action_close()">&nbsp;</a>
+      <span class="btns">
+        <a class="btn_min" onclick="action_min()">&nbsp;</a>
+        <a class="btn_max" onclick="action_max()">&nbsp;</a>
+        <a class="btn_close" onclick="action_close()">&nbsp;</a>
+      </span>
     </div>
     <div id="container"></div>
     <div id="contextmenu"></div>
@@ -140,11 +166,33 @@
         win.close();
       };
       window.action_min = function () {
-        ipcRenderer.sendSync('win_min');
+        let win = remote.BrowserWindow.getFocusedWindow();
+        win.minimize();
       };
       window.action_max = function () {
-        ipcRenderer.sendSync('win_max');
+        let win = remote.BrowserWindow.getFocusedWindow();
+        if (win.isMaximized()) {
+          win.unmaximize();
+        } else {
+          win.maximize();
+        }
       };
+
+      let clickCount = 0;
+      document.querySelector('.titlebar').addEventListener('click', function () {
+        clickCount++;
+        setTimeout(function () {
+          clickCount--;
+        }, 300);
+        if (clickCount > 1) {
+          let win = remote.BrowserWindow.getFocusedWindow();
+          if (win.isMaximized()) {
+            win.unmaximize();
+          } else {
+            win.maximize();
+          }
+        }
+      }, false);
 
       log.debug('init default app');
       router();

@@ -12,6 +12,9 @@
         background: #e3e3e3;
         overflow: scroll;
     }
+    .menu li {
+        cursor: pointer;
+    }
     .editor {
         flex: 2;
         overflow:hidden;
@@ -29,6 +32,8 @@
         word-break: break-all;
         margin: 0px 10px;
         overflow: scroll;
+        position: relative;
+        line-height: 180%;
     }
     .preview pre {
         background: #f6f6f6;
@@ -154,6 +159,7 @@
     }
     .CodeMirror pre {
         padding: 0px 10px;
+        line-height: 180%;
         font-family: 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
     }
     .cm-s-base16-light span.cm-variable-2 {

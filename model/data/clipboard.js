@@ -261,8 +261,8 @@ class ClipBoard {
       } else {
         callback(result.value);
       }
+      e.preventDefault();
     }
-    e.preventDefault();
     // let dataFormats = clipboard.availableFormats().reverse();
     // log.info('clipboard availableFormat:', dataFormats);
     // log.info('clipboard content, text:', clipboard.readText(), 'html:', clipboard.readHTML());

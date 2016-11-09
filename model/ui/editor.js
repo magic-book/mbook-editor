@@ -16,6 +16,50 @@ const log = require('../../lib/log');
 const UIBase = require('./ui_base');
 const co = require('co');
 
+const listRE = /^(\s*)(>[> ]*|[*+-]\s|(\d+)\.)(\s*)/;
+const emptyListRE = /^(\s*)(>[> ]*|[*+-]|(\d+)\.)(\s*)$/;
+const unorderedListRE = /[*+-]\s/;
+
+CodeMirror.commands.newlineAndIndentContinueMarkdownList = function (cm) {
+  if (cm.getOption('disableInput')) {
+    return CodeMirror.Pass;
+  }
+
+  let ranges = cm.listSelections();
+  let replacements = [];
+
+  for (var i = 0; i < ranges.length; i++) {
+    let pos = ranges[i].head;
+    let eolState = cm.getStateAfter(pos.line);
+    let inList = eolState.list !== false;
+    let inQuote = eolState.quote !== 0;
+    let line = cm.getLine(pos.line);
+    let match = listRE.exec(line);
+
+    if (!ranges[i].empty() || (!inList && !inQuote) || !match) {
+      cm.execCommand('newlineAndIndent');
+      return;
+    }
+    if (emptyListRE.test(line)) {
+      cm.replaceRange('', {
+        line: pos.line, ch: 0
+      }, {
+        line: pos.line, ch: pos.ch + 1
+      });
+      replacements[i] = '\n';
+    } else {
+      let indent = match[1];
+      let after = match[4];
+      let bullet = unorderedListRE.test(match[2]) || match[2].indexOf('>') >= 0 ?
+        match[2] : (parseInt(match[3], 10) + 1) + '.';
+
+      replacements[i] = '\n' + indent + bullet + after;
+    }
+  }
+
+  cm.replaceSelections(replacements);
+};
+
 /**
  * 编辑文件类
  */
@@ -155,6 +199,16 @@ class Editor extends UIBase {
       self.emit('change', self.currentFile.file, self.editor.getValue());
     });
 
+    editor.on('scroll', function (cm) {
+      let top = cm.display.scroller.scrollTop;
+      let lineNum = cm.lineAtHeight(top, 'local');
+      log.debug('editor scroll to line:', lineNum, 'height', top);
+      self.emit('scroll', {
+        top: top,
+        line: lineNum
+      });
+    });
+
     this.editor = editor;
   }
   renameFile(data) {
@@ -190,7 +244,6 @@ class Editor extends UIBase {
   }
 
   insertCurrent(content) {
-    console.log(content);
     let cursor = this.editor.getCursor();
     this.editor.replaceRange(content, cursor);
   }

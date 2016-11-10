@@ -55,6 +55,7 @@ hi，all，
 * 有开源项目 +1
 
 **寻找  Score >= 3 的你  或者 你身边的小伙伴**
+
 简历可以发送到这个邮箱： jianxun.zxl#alibaba-inc.com 
 我们会火速跟进！
 

@@ -46,7 +46,7 @@ class Menu extends UIBase {
     let self = this;
     this.book = options.book;
     this.container = options.container;
-    this.container.find('.trewview').html(`
+    this.container.find('.treeview').html(`
       <div class="bookmenu"></div>
       <div class="contextmenu"></div>
     `);

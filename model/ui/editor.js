@@ -166,6 +166,8 @@ class Editor extends UIBase {
     });
     **/
 
+    console.log(CodeMirror.keyNames);
+
     var editor = new CodeMirror(editorContainer[0], {
       lineNumbers: false,
       lineWrapping: true,
@@ -189,7 +191,13 @@ class Editor extends UIBase {
           }).catch(function (e) {
             log.error('save file error:', e.message);
           });
-        }
+        },
+        'Alt-X': function () {
+          self.emit('cut');
+        },
+        'Enter': 'newlineAndIndentContinueMarkdownList',
+        'Home': 'goLineLeft',
+        'End': 'goLineRight'
       }
     });
     editor.on('change', function () {

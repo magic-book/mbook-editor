@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>test</title>
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        -webkit-app-region: no-drag;
+      }
+
+      .canvas {
+        display: block;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+      }
+
+
+    </style>
+  </head>
+  <body>
+    <canvas class="canvas" id="screenshot"></canvas>
+    <canvas class="canvas" id="cutter"></canvas>
+    <script>
+      'use strict';
+      var flagCut = false;
+      var ipc = require('electron').ipcRenderer;
+
+      class Cutter {
+        constructor() {
+          this.canvasScreenShot = document.getElementById('screenshot');
+          this.canvasCutter = document.getElementById('cutter');
+          this.width = window.screen.width;
+          this.height = window.screen.height;
+          this.canvasScreenShot.width = this.width;
+          this.canvasScreenShot.height = this.height;
+
+          this.canvasCutter.width = this.width;
+          this.canvasCutter.height = this.height;
+
+          this.cutInfo = {
+            x: 0,
+            y: 0,
+            right: 0,
+            bottom: 0
+          };
+          this.loadScreenShot();
+          this.drawCutLayer();
+          let self = this;
+          let clickCount = 0;
+          let interval = null;
+          document.addEventListener('mousedown', function (e) {
+            clickCount++;
+            interval = setTimeout(function () {
+              clickCount--;
+              if (clickCount === 0) {
+                self.startCut(e);
+              }
+            }, 200);
+            if (clickCount >= 2) {
+              clearTimeout(interval);
+              clickCount = 0;
+              // todo double click
+              ipc.send('cut', self.cutInfo);
+            }
+          });
+          document.addEventListener('mousemove', function (e) {
+            self.cutting(e);
+          });
+          document.addEventListener('mouseup', function (e) {
+            self.stopCut(e);
+          });
+          window.addEventListener('keyup', function (e) {
+            switch (e.keyCode) {
+              case 13: // ENTER
+                ipc.send('cut', self.cutInfo);
+                break;
+              case 27: // ECS
+                if (self.flagCut) {
+                  self.reset();
+                } else {
+                  ipc.send('close-subwindow');
+                }
+                break;
+            }
+          });
+        }
+        loadScreenShot() {
+          let img = new Image();
+          let ctx = this.canvasScreenShot.getContext('2d');
+          let self = this;
+
+          img.onload = function () {
+            ctx.clearRect(0, 0, self.width, self.height);
+            ctx.drawImage(img, 0, 0);
+          };
+
+          img.src = localStorage.screenshot;
+        }
+        drawCutLayer() {
+          let ctx = this.canvasCutter.getContext('2d');
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+          ctx.clearRect(0, 0, this.width, this.height);
+          ctx.rect(0, 0, this.width, this.height);
+          ctx.fill();
+          if (!this.cutInfo.width || !this.cutInfo.height) {
+            return;
+          }
+          ctx.clearRect(
+            this.cutInfo.x,
+            this.cutInfo.y,
+            this.cutInfo.width,
+            this.cutInfo.height
+          );
+        }
+        getCutRect() {
+          return this.cutInfo;
+        }
+        startCut(e) {
+          this.flagCut = true;
+          this.isCutter = true;
+          this.cutInfo.x = e.pageX;
+          this.cutInfo.y = e.pageY;
+        }
+        stopCut(e) {
+          this.isCutter = false;
+        }
+        cutting(e) {
+          if (!this.isCutter) {
+            return;
+          }
+          let width = e.pageX - this.cutInfo.x;
+          let height = e.pageY - this.cutInfo.y;
+          if (!width || !height) {
+            return;
+          }
+          this.cutInfo.width = width;
+          this.cutInfo.height = height;
+          this.drawCutLayer();
+        }
+        reset() {
+          this.cutInfo = {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0
+          };
+          this.flagCut = false;
+          this.drawCutLayer();
+        }
+      }
+
+      new Cutter;
+
+    </script>
+  </body>
+</html>

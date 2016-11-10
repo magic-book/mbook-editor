@@ -17,6 +17,7 @@ const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
 const os = require('os');
 const pkg = require('./package.json');
+const clipboard = electron.clipboard;
 
 const versions = [
   '\n==============',
@@ -71,7 +72,8 @@ electron.crashReporter.start({
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the javascript object is GCed.
-var mainWindow = null;
+let mainWindow = null;
+let cutWindow = null;
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
   app.quit();
@@ -159,6 +161,46 @@ app.on('ready', function () {
     event.returnValue = 'success';
   });
 
+  ipcMain.on('hide-main-window', function (e) {
+    mainWindow.hide();
+    e.sender.send('screenshot');
+  });
+  ipcMain.on('create-sub-window', function (e, wh) {
+    cutWindow = new BrowserWindow({
+      width: wh[0],
+      height: wh[1],
+      modal: false,
+      parent: mainWindow,
+      fullscreen: true,
+      resizable: false,
+      skipTaskbar: true,
+      frame: false,
+      transparent: true
+    });
+    cutWindow.loadURL(`file://${__dirname}/view/cutter.html`);
+    cutWindow.show();
+    /*
+    cutWindow.once('ready-to-show', () => {
+      cutWindow.show();
+      cutWindow.webContents.executeJavaScript('window.');
+    });
+    */
+
+    // cutWindow.webContents.openDevTools(true);
+  });
+
+  ipcMain.on('close-subwindow', function () {
+    cutWindow.close();
+    mainWindow.show();
+  });
+
+  ipcMain.on('cut', function (e, arg) {
+    cutWindow.capturePage(arg, function (image) {
+      clipboard.writeImage(image);
+      cutWindow.close();
+      mainWindow.show();
+    });
+  });
   // mainWindow.webContents.on('dom-ready', function (evt) {
   //   console.log(evt);
   //   this.executeJavaScript('', function () {});

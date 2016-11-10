@@ -8,6 +8,7 @@ const mmm = require('mmmagic');
 const Magic = mmm.Magic;
 const view = require('../../lib/view');
 const log = require('../../lib/log');
+const ipcRenderer = require('electron').ipcRenderer;
 
 const BaseCtrl = require('../base_controller');
 const Book = require('../../model/data/book');
@@ -125,6 +126,13 @@ class AppEditor extends BaseCtrl {
         });
       }
     });
+    ipcRenderer.on('screenshot', function () {
+      getImg();
+      ipcRenderer.send('create-sub-window', [screen.width, screen.height]);
+    });
+    this.editor.on('cut', function () {
+      ipcRenderer.send('hide-main-window');
+    });
 
     this.editor.on('scroll', function (data) {
       preview.scrollToFlag({
@@ -149,6 +157,26 @@ class AppEditor extends BaseCtrl {
   destroy() {
     super.destroy();
   }
+}
+
+function getImg() {
+  let desktopCapturer = require('electron').desktopCapturer;
+  let width = screen.width;
+  let height = screen.height;
+  desktopCapturer.getSources(
+    {
+      types: ['screen'],
+      thumbnailSize: {
+        width: width,
+        height: height
+      }
+    },
+    function (error, sources) {
+      if (error) throw error;
+      console.log(sources[0].thumbnail.toDataURL());
+      window.localStorage.screenshot = sources[0].thumbnail.toDataURL();
+    }
+  );
 }
 
 module.exports = AppEditor;

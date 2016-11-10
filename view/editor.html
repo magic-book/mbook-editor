@@ -57,20 +57,20 @@
         margin:0px;
         height: 100%;
     }
-    .trewview {
+    .treeview {
         margin: 6px 0px;
     }
-    .trewview ul {
+    .treeview ul {
         margin: 0px;
         padding: 0px;
         counter-reset:num;}
     }
-    .trewview li {
+    .treeview li {
         margin: 1px;
         padding: 0xp;
 
     }
-    .trewview .icon {
+    .treeview .icon {
         float: right;
         font-size: 12px;
         font-style: normal;
@@ -80,31 +80,31 @@
         color: #aaa;
         -webkit-transform: rotate(0deg);
     }
-    .trewview .icon:hover {
+    .treeview .icon:hover {
         color: #666;
     }
-    .trewview .icon_open {
+    .treeview .icon_open {
         /* -webkit-transform: rotate(90deg); */
     }
-    .trewview a:before{
+    .treeview a:before{
         content: counters(num,'.') '. ';
         counter-increment:num;
         color: #888;
     }
 
-    .trewview ul{
+    .treeview ul{
         list-style: none;
     }
 
-    .trewview a,  .trewview a:link{
+    .treeview a,  .treeview a:link {
         font-size: 14px;
         display: block;
-        color: #676767;
+        color: #454545;
         padding: 0px 10px;
         line-height: 200%;
         text-decoration: none;
     }
-    .trewview a:hover{
+    .treeview a:hover{
         background: #d1d1d1;
     }
     .menu a.level1 {
@@ -141,7 +141,7 @@
     .cm-s-base16-light span.cm-quote {
         color: #90a959;
     }
-    .cm-header {color: #00ABD5;}
+    .cm-header {color: #0097D2;}
     .cm-header-1 {font-size: 1.6em;}
     .cm-header-2 {font-size: 1.4em;}
     .cm-header-3 {font-size: 1.2em;}
@@ -150,25 +150,25 @@
     .cm-header-6 {font-size: 1em;}
     .cm-quote {color: #90a959;}
     .cm-s-base16-light .CodeMirror-activeline-background {
-        background: #f9f9f9;
+        background: #f5f5f5;
     }
     /** 编辑器主样式 */
     .cm-s-base16-light.CodeMirror {
-        background: #f6f6f6;
-        font-family: 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
+        background: #f1f1f1;
+        font-family: 'menlo', 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
     }
     .CodeMirror pre {
         padding: 0px 10px;
         line-height: 180%;
-        font-family: 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
+        font-family: 'menlo', 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
     }
     .cm-s-base16-light span.cm-variable-2 {
-        color: #6a9fb5;
+        color: #009F59;
     }
 </style>
 <div id="main" class="main">
     <div class="menu" id="menu">
-        <div class="trewview"></div>
+        <div class="treeview"></div>
     </div>
     <div class="editor" id="editor">
         <div class="toolbar" style="margin-top:5px;">

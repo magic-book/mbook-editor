@@ -11,10 +11,12 @@ require('codemirror/addon/mode/multiplex');
 require('codemirror/addon/scroll/simplescrollbars');
 require('codemirror/addon/selection/active-line');
 
+const path = require('path');
 const CodeMirror = require('codemirror');
 const log = require('../../lib/log');
 const UIBase = require('./ui_base');
 const co = require('co');
+const $ = require('jquery');
 
 const listRE = /^(\s*)(>[> ]*|[*+-]\s|(\d+)\.)(\s*)/;
 const emptyListRE = /^(\s*)(>[> ]*|[*+-]|(\d+)\.)(\s*)$/;
@@ -148,27 +150,9 @@ class Editor extends UIBase {
     let editorContainer = options.container;
 
     this.book = options.book;
-    this.editCnt = editorContainer;
-    // editorContainer.css;
-    /**
-    CodeMirror.defineMode('mathdown', function (config) {
-      var options = [];
-      var ref = [['$$', '$$'], ['$', '$'], ['\\[', '\\]'], ['\\(', '\\)']];
-      for (var i = 0, len = ref.length; i < len; i++) {
-        var x = ref[i];
-        options.push({
-          open: x[0],
-          close: x[1],
-          mode: CodeMirror.getMode(config, 'stex')
-        });
-      }
-      return CodeMirror.multiplexingMode.apply(CodeMirror, [CodeMirror.getMode(config, 'gfm')].concat([].slice.call(options)));
-    });
-    **/
+    this.editCnt = editorContainer.find('.editor-cnt');
 
-    console.log(CodeMirror.keyNames);
-
-    var editor = new CodeMirror(editorContainer[0], {
+    var editor = new CodeMirror(this.editCnt[0], {
       lineNumbers: false,
       lineWrapping: true,
       lineSeparator: '\n',
@@ -180,6 +164,7 @@ class Editor extends UIBase {
       showCursorWhenSelecting: true,
       matchBrackets: true,
       readOnly: true,
+      viewportMargin: 20,
       extraKeys: {
         'Cmd-S': function () {
           if (!self.currentFile) {
@@ -204,7 +189,24 @@ class Editor extends UIBase {
       if (!self.currentFile) {
         return;
       }
-      self.emit('change', self.currentFile.file, self.editor.getValue());
+      self.emit('change', {
+        title: self.currentFile.title,
+        file: self.currentFile.file,
+        value: self.editor.getValue()
+      });
+      // save file delay 3's
+      if (self.intervalDelaySave) {
+        clearTimeout(self.intervalDelaySave);
+      }
+      self.intervalDelaySave = setTimeout(function () {
+        self.intervalDelaySave = null;
+        co(function* () {
+          yield self.currentFile.save();
+          log.info('auto_save', self.currentFile.file);
+        }).catch(function (e) {
+          log.error('save file error:', e.message);
+        });
+      }, 3000);
     });
 
     editor.on('scroll', function (cm) {
@@ -215,6 +217,10 @@ class Editor extends UIBase {
         top: top,
         line: lineNum
       });
+    });
+
+    $('#edit_btn_cut').on('click', function () {
+      self.emit('cut');
     });
 
     this.editor = editor;
@@ -246,25 +252,41 @@ class Editor extends UIBase {
       self.currentFile = file;
 
       file.load();
+      self.editor.focus();
     }).catch(function (e) {
       log.error(e);
     });
   }
 
-  insertCurrent(content) {
+  insertCurrent(type, content) {
     let cursor = this.editor.getCursor();
-    this.editor.replaceRange(content, cursor);
+    switch (type) {
+      case 'image':
+        content = '![](' + this.resolvePathToRelative(content) + ')';
+        break;
+    }
+    this.editor.replaceRange(content || '', cursor);
   }
 
   resize() {
-    log.warn('editor resize');
     let cnt = this.editCnt;
     let parent = cnt.parent();
     cnt.css({
-      height: parent.height() + 'px'
+      height: (parent.height() - 36) + 'px'
     });
 
     this.editor.refresh();
+  }
+  resolvePathToRelative(file) {
+    let curFileName = this.currentFile.file;
+    //  /abc/test.md
+    let tmp = curFileName.split(path.sep);
+    let depth = tmp.length - 2;
+    let reltoRoot = [];
+    for (let i = 0; i < depth; i++) {
+      reltoRoot.push('..');
+    }
+    return path.join(reltoRoot.join(path.sep), file);
   }
 }
 

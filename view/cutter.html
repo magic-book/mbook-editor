@@ -31,8 +31,9 @@
     <canvas class="canvas" id="cutter"></canvas>
     <script>
       'use strict';
-      var flagCut = false;
+      var log = require('../lib/log');
       var ipc = require('electron').ipcRenderer;
+      var $ = require('jquery');
 
       class Cutter {
         constructor() {
@@ -55,30 +56,19 @@
           this.loadScreenShot();
           this.drawCutLayer();
           let self = this;
-          let clickCount = 0;
-          let interval = null;
-          document.addEventListener('mousedown', function (e) {
-            clickCount++;
-            interval = setTimeout(function () {
-              clickCount--;
-              if (clickCount === 0) {
-                self.startCut(e);
-              }
-            }, 200);
-            if (clickCount >= 2) {
-              clearTimeout(interval);
-              clickCount = 0;
-              // todo double click
-              ipc.send('cut', self.cutInfo);
-            }
+          $(document).dblclick(function () {
+            ipc.send('cut', self.cutInfo);
           });
-          document.addEventListener('mousemove', function (e) {
+          $(document).on('mousedown', function (e) {
+            self.startCut(e);
+          });
+          $(document).on('mousemove', function (e) {
             self.cutting(e);
           });
-          document.addEventListener('mouseup', function (e) {
+          $(document).on('mouseup', function (e) {
             self.stopCut(e);
           });
-          window.addEventListener('keyup', function (e) {
+          $(window).on('keyup', function (e) {
             switch (e.keyCode) {
               case 13: // ENTER
                 ipc.send('cut', self.cutInfo);
@@ -87,7 +77,7 @@
                 if (self.flagCut) {
                   self.reset();
                 } else {
-                  ipc.send('close-subwindow');
+                  ipc.send('close-cutwindow');
                 }
                 break;
             }
@@ -126,9 +116,9 @@
         }
         startCut(e) {
           this.flagCut = true;
-          this.isCutter = true;
-          this.cutInfo.x = e.pageX;
-          this.cutInfo.y = e.pageY;
+          this.isCutter = 1;
+          this._cx = e.pageX;
+          this._cy = e.pageY;
         }
         stopCut(e) {
           this.isCutter = false;
@@ -136,6 +126,11 @@
         cutting(e) {
           if (!this.isCutter) {
             return;
+          }
+          if (this.isCutter === 1) {
+            this.cutInfo.x = this._cx;
+            this.cutInfo.y = this._cy;
+            this.isCutter = 2;
           }
           let width = e.pageX - this.cutInfo.x;
           let height = e.pageY - this.cutInfo.y;
@@ -159,7 +154,6 @@
       }
 
       new Cutter;
-
     </script>
   </body>
 </html>

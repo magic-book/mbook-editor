@@ -22,25 +22,16 @@ class Home extends BaseCtrl {
   init(options) {
     let self = this;
     view.render(options.container, 'home.html');
-
     self.renderUI();
   }
 
-
-
   resize() {
-
+    $('.j-con-home').height($(window).height());
   }
 
   destroy() {
     super.destroy();
   }
-
-
-
-
-
-
   _sync() {
     this.container = null;
     this.bookspace = null;
@@ -49,7 +40,7 @@ class Home extends BaseCtrl {
       getBookspaceTpl(item) {
         return `<li class="${item.icon ? '' : 'cover-failed'}">
                   <div class="cover j-trigger-openBook" data-path="${item.path}">
-                    <img src="${item.icon}">
+                    <img src="">
                     <div class="close j-trigger-removebook">
                       <i class="icon-close"></i>
                     </div>
@@ -60,7 +51,7 @@ class Home extends BaseCtrl {
                   </div>
                 </li>`;
       },
-      trigerTpl: `<li>
+      trigerTpl: `<li class="book-opt">
                     <div class="cover">
                       <div class="triggers">
                         <button class="j-trigger-newBook">[+] Create New Book</button>
@@ -74,7 +65,7 @@ class Home extends BaseCtrl {
       ,
       getBookspacesTpl(bookspaces) {
         let tpls = bookspaces.map(tplOpt.getBookspaceTpl);
-        tpls.unshift(tplOpt.trigerTpl);
+        tpls.push(tplOpt.trigerTpl);
         return `<ul class="bookspaces">${tpls.join('')}</ul>`;
       },
       dialogTpl(data) {
@@ -99,13 +90,20 @@ class Home extends BaseCtrl {
                 <div class="modalContainer j-trigger-bookspacemodal">
                   <div class="modal j-trigger-createmodal">
                     <div class="modal-heading">
-                      <h4>Create Bookspace</h4>
+                      <h4>Setup Bookspace</h4>
                     </div>
                     <div class="modal-body">
                       <div class="modal-form">
-                        <label>Bookspace Path</label>
-                        <div class="elem-choice"><input type="text" value="${data.defaultPath}" class="elem-choiceinp" placeholder="My Awesome Bookspace Path"/><button class="j-trigger-choicedir">Choice</button></div>
-                        <p class="help-block">It will set the path as bookspace on this computer</p>
+                        <label>setup bookspace Path</label>
+                        <div class="elem-choice">
+                          <p type="text" class="elem-choiceinp" style="background:#eee; text-align:left; font-weight:bolder;">
+                            ${data.defaultPath}
+                          </p>
+                          <p>
+                          <button class="j-trigger-choicedir">change path</button>
+                          </p>
+                        </div>
+                        <p class="help-block">new book will be created into this path.</p>
                       </div>
                     </div>
                     <div class="modal-footer">
@@ -120,7 +118,7 @@ class Home extends BaseCtrl {
 
   createDOM(bookspaces) {
     this.container.html(this.tplOpt.getBookspacesTpl(bookspaces) + this.tplOpt.dialogTpl({
-      defaultPath: Bookspace.defaultBookSpace
+      defaultPath: this.bookspace.getDefaultRoot()
     }));
   }
   bindUI() {
@@ -131,17 +129,26 @@ class Home extends BaseCtrl {
         hash.w.hide() && hash.o && hash.o.remove();
       }
     });
+    /**
+     * 创建book按钮
+     */
     this.container.on('click', '.j-trigger-createBook', e => {
       let inp = this.modalbox.find('input');
-      let val = inp.val();
+      let val = inp.val().trim();
       if (val) {
-        let bookRoot = path.join(this.bookspace.bookspacePath, val);
-        let branch = this.bookspace.save(bookRoot);
-        branch && this.container.find('.bookspaces').append(this.tplOpt.getBookspaceTpl(branch));
+        let bookInfo = this.bookspace.createBook({
+          name: val
+        });
+        this.container.find('.bookspaces .book-opt').before(this.tplOpt.getBookspaceTpl(bookInfo));
         this.modalbox.jqmHide();
         inp.val('');
+      } else {
+        // TODO: 提醒用户，book名字必填
       }
     });
+    /**
+     * 打开已经创建的book
+     */
     this.container.on('click', '.j-trigger-openBook', e => {
       let tgr = $(e.currentTarget);
       let bookPath = tgr.data('path');
@@ -149,12 +156,20 @@ class Home extends BaseCtrl {
       if (bookPath) {
         bookRoot = path.resolve(bookPath);
       } else {
-        let bookDir = dialog.showOpenDialog({ properties: ['openDirectory'] });
+        let bookDir = dialog.showOpenDialog({
+          properties: ['openDirectory']
+        });
         bookRoot = bookDir && bookDir[0];
-        bookRoot && this.bookspace.save({
-          name: bookRoot.split(path.sep).pop(),
-          path: bookRoot,
-          type: Bookspace.TYPES.history
+        let bookInfo = {};
+        try {
+          bookInfo = require(path.join(bookRoot, './book.json'));
+        } catch (e) {
+          log.error('loading book.json failed', e.message);
+          return;
+        }
+        bookInfo.title && this.bookspace.importBook({
+          name: bookInfo.title,
+          path: bookRoot
         });
       }
       bookRoot && this.emit('scene', {
@@ -164,6 +179,9 @@ class Home extends BaseCtrl {
         }
       });
     });
+    /**
+     * 删除book
+     */
     this.container.on('click', '.j-trigger-removebook', e => {
       e.stopPropagation();
 
@@ -171,33 +189,41 @@ class Home extends BaseCtrl {
       let bookTgr = tgr.parent();
       let bookPath = bookTgr.data('path');
       this.bookspace.remove(path.resolve(bookPath));
-
       bookTgr.closest('li').remove();
     });
-
+    /**
+     * [description]
+     * @param  {[type]} e [description]
+     * @return {[type]}   [description]
+     */
     this.container.on('click', '.j-trigger-choicedir', e => {
-      let bookspaceDir = dialog.showOpenDialog({ properties: ['openDirectory'], defaultPath: Bookspace.defaultBookSpace });
+      let bookspaceDir = dialog.showOpenDialog({
+        properties: ['openDirectory'], defaultPath: Bookspace.defaultBookSpace
+      });
       if (bookspaceDir && bookspaceDir[0]) {
-        this.container.find('.elem-choiceinp').val(bookspaceDir[0]);
+        this.container.find('.elem-choiceinp').text(bookspaceDir[0]);
       }
     });
+    /**
+     * 设置bookspace root
+     */
     this.container.on('click', '.j-trigger-bookspace', e => {
-      let val = this.container.find('.elem-choiceinp').val();
+      let val = this.container.find('.elem-choiceinp').text().trim();
       if (val) {
-        this.bookspace.setBookspace(val);
+        this.bookspace.setRoot(val);
         this.container.find('.j-trigger-bookspacemodal').jqmHide();
 
         this.container.find('.bookspaces').remove();
-        this.container.prepend(this.tplOpt.getBookspacesTpl(this.bookspace.retrieve(Bookspace.TYPES.local)));
+        this.container.prepend(this.tplOpt.getBookspacesTpl(this.bookspace.retrieve()));
       }
     });
   }
   renderUI() {
     this.container = $('.j-con-home');
     this.bookspace = new Bookspace();
-    this.createDOM(this.bookspace.retrieve(Bookspace.TYPES.local));
+    this.createDOM(this.bookspace.retrieve());
 
-    if (!this.bookspace.bookspacePath) {
+    if (!this.bookspace.getRoot()) {
       let modal = this.container.find('.j-trigger-bookspacemodal');
       modal.jqm();
       modal.jqmShow();
@@ -206,7 +232,6 @@ class Home extends BaseCtrl {
     this.modalbox = this.container.find('.j-trigger-createmodal');
     this.bindUI();
   }
-
 
 }
 

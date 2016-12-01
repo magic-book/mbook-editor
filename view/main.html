@@ -2,7 +2,8 @@
 <html manifest="manifest.appcache">
   <head>
       <meta charset="utf-8">
-      <title>GitBook Editor</title>
+      <title>Book Editor</title>
+      <link rel="stylesheet" href="iconfont/iconfont.css">
       <style type="text/css">
         body {
           padding: 0px;
@@ -10,60 +11,19 @@
           font-family: 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
           font-size: 14px;
           overflow: hidden;
+          height: 100%;
+          background-color: #868686;
         }
         ::-webkit-scrollbar-thumb {
           display: none;
         }
         .dragable {
+          position: absolute;
+          margin-left: 78px;
+          height: 20px;
+          width: 100%;
           -webkit-app-region:drag;
           -webkit-user-select: none;
-        }
-        .titlebar {
-          height: 20px;
-          padding: 10px;
-          background-color: #086990;
-          color: #fff;
-          position: relative;
-          box-shadow: 0px 1px 2px #999;
-        }
-        .titlebar .title {
-          font-weight: bold;
-          font-size: 20px;
-        }
-        .titlebar .btns {
-          display: block;
-          position: absolute;
-          right: 10px;
-          top: 10px;
-        }
-        .titlebar .btns a {
-          display: inline-block;
-          width: 17px;
-          height: 17px;
-          -webkit-app-region: no-drag;
-          margin-left: 8px;
-        }
-        .titlebar .btns a:hover {
-          background-color: rgba(255,255,255, 0.2);
-          border-radius: 2px;
-        }
-        .titlebar .btn_max {
-          background: url(./imgs/btn_max.png) transparent 0px 0px;
-        }
-        .titlebar .btn_max:hover {
-          background-image: url(./imgs/btn_max_hover.png)
-        }
-        .titlebar .btn_min {
-          background: url(./imgs/btn_min.png) transparent 0px 0px;
-        }
-        .titlebar .btn_min:hover {
-          background-image: url(./imgs/btn_min_hover.png)
-        }
-        .titlebar .btn_close {
-          background: url(./imgs/btn_close.png) transparent 0px 0px;
-        }
-        .titlebar .btn_close:hover {
-          background-image: url(./imgs/btn_close_hover.png)
         }
         #contextmenu {
           display: none;
@@ -79,27 +39,60 @@
         #contextmenu a:hover {
             background: #e5e5e5;
         }
+        #sidetools {
+          flex-flow: row nowrap;
+          width: 78px;
+          background-color: #464646;
+          color: #eee;
+          height: 100%;
+        }
+        #sidetools .opt {
+          text-align: center;
+        }
+        #sidetools .opt a {
+          display: block;
+          margin-bottom: 15px;
+          cursor: pointer;
+        }
+        #sidetools .opt .iconfont {
+          font-size: 30px;
+        }
+        #container {
+          flex: 1px;
+        }
+
       </style>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
-    <div class="titlebar dragable">
-      <span class="title">Mbook</span>
-      <span class="btns">
-        <a class="btn_min" onclick="action_min()">&nbsp;</a>
-        <a class="btn_max" onclick="action_max()">&nbsp;</a>
-        <a class="btn_close" onclick="action_close()">&nbsp;</a>
-      </span>
+    <div style="display: flex; flex-flow: row nowrap;">
+      <div id="sidetools">
+        <div style="margin: 40px 0px 20px 0px; text-align: center;">
+          <img style="width: 70px; margin: 0px auto"src="imgs/mbook.png"/>
+        </div>
+        <div class="opt">
+          <a onclick="switchScene('home')">
+            <i class="icon iconfont icon-shuzhongdie" style="font-size: 26px"></i>
+          </a>
+          <!-- <a>
+            <i class="icon iconfont icon-shufankai"></i>
+          </a> -->
+        </div>
+      </div>
+      <div id="container"></div>
     </div>
-    <div id="container"></div>
     <div id="contextmenu"></div>
   </body>
   <script type="text/javascript">
     'use strict';
     (function () {
+      const $ = require('jquery');
       const {ipcRenderer} = require('electron');
+      const qs = require('querystring');
       const remote = require('electron').remote;
       const log = require('../lib/log');
+      const sideTools = document.getElementById('sidetools');
+      const container = document.getElementById('container');
       let lastApp;
       function router() {
         let hash = location.hash.substr(2);
@@ -136,17 +129,27 @@
           lastApp = new Controller(options);
           lastApp.resize && lastApp.resize();
           lastApp.on('scene', function (data) {
-            ipcRenderer.sendSync('scene', data);
+            let scene = data.scene;
+            let query = qs.stringify(data.options);
+            location.hash = `#!/${scene}?${query}`;
+            // ipcRenderer.sendSync('scene', data);
           });
         } catch (e) {
           log.error('init controller error', e.stack);
         }
       }
-      window.addEventListener('resize', function () {
-        // let w = window.document.documentElement.clientWidth;
-        // let h = window.document.documentElement.clientHeight;
-        lastApp.resize && lastApp.resize();
-      });
+      function resize() {
+        let h = window.document.documentElement.clientHeight;
+
+        sideTools.style.height = h + 'px';
+        container.style.height = h + 'px';
+
+        lastApp && lastApp.resize && lastApp.resize();
+      }
+      window.switchScene = function (scene, options) {
+        lastApp && lastApp.emit('scene', {scene: scene, options: options});
+      };
+      window.addEventListener('resize', resize);
       window.addEventListener('hashchange', function () {
         log.debug('hashchange');
         router();
@@ -178,13 +181,11 @@
         }
       };
 
+      resize();
+
       let clickCount = 0;
-      document.querySelector('.titlebar').addEventListener('click', function () {
-        clickCount++;
-        setTimeout(function () {
-          clickCount--;
-        }, 300);
-        if (clickCount > 1) {
+      $(window).dblclick(function (e) {
+        if (e.clientY <= 36) {
           let win = remote.BrowserWindow.getFocusedWindow();
           if (win.isMaximized()) {
             win.unmaximize();
@@ -192,8 +193,7 @@
             win.maximize();
           }
         }
-      }, false);
-
+      });
       log.debug('init default app');
       router();
     })();

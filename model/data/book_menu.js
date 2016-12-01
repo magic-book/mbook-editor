@@ -43,7 +43,7 @@ class BookMenu extends EventEmitter {
     let self = this;
     let tmp;
     if (!tokens.length) {
-      return {};
+      return [];
     }
     tokens.forEach(function (n) {
       switch (n.type) {

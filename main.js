@@ -12,6 +12,7 @@ const qs = require('querystring');
 const path = require('path');
 // require('electron-cookies');
 const electron = require('electron');
+const menu = electron.Menu;
 const app = electron.app;  // Module to control application life.
 const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
@@ -39,6 +40,34 @@ function checkAbsPath(p) {
     return p.startsWith('/');
   }
 }
+
+
+const template = [
+  {
+    label: 'MagicBook',
+    submenu: [
+      {label: 'About MagicBook', role: 'orderFrontStandardAboutPanel'},
+      {type: 'separator'},
+      {label: 'Quit', accelerator: 'Command+Q', click: function () {
+        app.quit();
+      }}
+    ]
+  },
+  {
+    label: 'Edit',
+    submenu: [
+      {label: 'Undo', accelerator: 'CmdOrCtrl+Z', role: 'undo'},
+      {label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', role: 'redo'},
+      {label: 'Reload', accelerator: 'CmdOrCtrl+R', role: 'reload'},
+      {type: 'separator'},
+      {label: 'Cut', accelerator: 'CmdOrCtrl+X', role: 'cut'},
+      {label: 'Copy', accelerator: 'CmdOrCtrl+C', role: 'copy'},
+      {label: 'Paste', accelerator: 'CmdOrCtrl+V', role: 'paste'},
+      {label: 'Select All', accelerator: 'CmdOrCtrl+A', role: 'selectAll'}
+    ]
+  }
+];
+
 /**
  * 处理命令行进来的参数，比如直接打开文件夹
  */
@@ -87,11 +116,14 @@ app.on('quit', function () {
 // initialization and ready for creating browser windows.
 app.on('ready', function () {
   let base = __dirname;
+  // setup menu
+  menu.setApplicationMenu(menu.buildFromTemplate(template));
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 700,
     frame: false,
+    titleBarStyle: 'hidden-inset',
     show: false
   });
 
@@ -135,7 +167,7 @@ app.on('ready', function () {
    */
   ipcMain.on('scene', function (event, args) {
     let scene = args.scene;
-    let options = qs.stringify(args.options);
+    let options = qs.stringify(args.options || {});
     mainWindow.loadURL(`file://${__dirname}/view/main.html#!/${scene}?${options}`);
     event.returnValue = 'success';
   });
@@ -189,16 +221,18 @@ app.on('ready', function () {
     // cutWindow.webContents.openDevTools(true);
   });
 
-  ipcMain.on('close-subwindow', function () {
+  ipcMain.on('close-cutwindow', function () {
     cutWindow.close();
     mainWindow.show();
   });
 
   ipcMain.on('cut', function (e, arg) {
+    console.log('>>>>', arg);
     cutWindow.capturePage(arg, function (image) {
       clipboard.writeImage(image);
       cutWindow.close();
       mainWindow.show();
+      mainWindow.webContents.send('cuted');
     });
   });
   // mainWindow.webContents.on('dom-ready', function (evt) {

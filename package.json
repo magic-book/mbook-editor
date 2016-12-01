@@ -1,5 +1,7 @@
 {
-  "name": "",
+  "name": "magic-book",
+  "description": "a book editor",
+  "author": "fish",
   "version": "0.1.0",
   "main": "main.js",
   "scripts": {
@@ -14,23 +16,30 @@
     "ejs": "^2.4.2",
     "fs-promise": "^0.5.0",
     "highlight.js": "^9.7.0",
+    "jqmodal": "1.4.2",
     "jquery": "^3.1.0",
     "litelog": "1.1.1",
+    "lodash": "^4.17.2",
     "marked": "^0.3.5",
     "mmmagic": "^0.4.5",
-    "xfs": "^0.2.1",
-
     "request": "2.75.0",
-    "jqmodal": "1.4.2"
+    "xfs": "^0.2.1",
+    "electron": "1.4.8"
   },
-  "devDependencies": {
-    "electron-packager": "8.1.0",
-    "electron-prebuilt": "1.4.3",
-    "electron-rebuild": "^1.2.1",
-    "mocha": "^3.1.2",
-    "should": "^11.1.1",
-
-    "eslint": "*",
-    "eslint-plugin-react": "*"
+  "build": {
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
   }
 }

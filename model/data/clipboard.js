@@ -4,6 +4,7 @@ const co = require('co');
 
 const fs = require('fs');
 const path = require('path');
+const Events = require('events');
 const request = require('request');
 const clipboard = require('electron').clipboard;
 const fsp = require('fs-promise');
@@ -202,10 +203,6 @@ const pasteFuncObj = {
   }
 };
 
-
-
-
-
 /**
  * clipboard
  *  - writeText, readText, readHTML, writeHTML
@@ -235,18 +232,19 @@ const pasteFuncObj = {
  */
 
 
-class ClipBoard {
+class ClipBoard extends Events {
   constructor(options) {
+    super();
     this.magic = options.magic;
-    this.editor = options.editor;
     this.book = options.book;
   }
   paste(e) {
     let self = this;
     let callback = res => {
       co(function* () {
+        // save file, get abs path
         let imagePath = yield self.book.res.saveFile(res.name, res.buffer);
-        self.editor.insertCurrent('![](' + imagePath + ')');
+        self.emit('file-saved', imagePath);
       }).catch(function (e) {
         log.error('save image to local error', e.stack);
       });
@@ -261,7 +259,7 @@ class ClipBoard {
       } else {
         callback(result.value);
       }
-      e.preventDefault();
+      e && e.preventDefault();
     }
     // let dataFormats = clipboard.availableFormats().reverse();
     // log.info('clipboard availableFormat:', dataFormats);
@@ -272,8 +270,6 @@ class ClipBoard {
     //   let imagePath = yield self.book.res.saveFile(imageData.name, imageData.buffer);
     //   self.editor.insertCurrent('![](' + imagePath + ')');
     // }
-
-
 
     // if (dataFormats.length == 0) {
     //   // TODO: use system tools to paste
@@ -352,7 +348,6 @@ class ClipBoard {
   destroy() {
     this.book = null;
     this.magic = null;
-    this.editor = null;
   }
 }
 

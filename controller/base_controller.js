@@ -7,7 +7,7 @@ class BaseController extends EventEmitter {
     super();
   }
   destroy() {
-    this.removeAllEventListener();
+    this.removeAllListeners();
   }
 }
 

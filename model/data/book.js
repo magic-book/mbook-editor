@@ -19,7 +19,7 @@ class Book extends Events {
     super();
     this.root = options.root;
     this.loadBookInfo();
-    this.src = path.join(options.root, this.bookInfo.root);
+    this.src = path.join(options.root, this.bookInfo.root || '.');
     /**
      * 菜单
      * @type {BookMenu}
@@ -51,6 +51,10 @@ class Book extends Events {
       };
     }
     this.bookInfo = bookInfo;
+  }
+  getBookTitle() {
+    console.log(this.bookInfo);
+    return this.bookInfo.title;
   }
   * loadFile(file) {
     let fpath = path.join(this.src, file);

@@ -50,6 +50,7 @@ class Menu extends UIBase {
       <div class="bookmenu"></div>
       <div class="contextmenu"></div>
     `);
+    this.container.find('.book-title').html(options.book.getBookTitle());
     let menuList = options.container.find('.bookmenu');
 
     $(window).on('click', this.hideContextMenu.bind(this));
@@ -57,7 +58,7 @@ class Menu extends UIBase {
     this.cnt = menuList;
 
     menuList.on('click', function (e) {
-      if (e.which !== 1) {
+      if (e.which === 2) {
         // log.warn('menu right click');
         return;
       }
@@ -80,8 +81,13 @@ class Menu extends UIBase {
         self.emit('open_file', text, file);
       }
     });
+    this.container.find('#btn_bookspace').on('click', function (e) {
+      self.emit('bookspace');
+      e.stopPropagation();
+      e.preventDefault();
+    });
 
-    this.container.on('contextmenu', function (e) {
+    this.container.find('.treeview').on('contextmenu', function (e) {
       // if (e.target.tagName === 'A') {
       self.activeMenuItem(e.target);
       // }
@@ -268,7 +274,7 @@ class Menu extends UIBase {
             text: name
           }));
           list.append(node);
-          self.emit('change', self.getMenuData());
+
           if (flag) {
             let origin = ctxMenuTarget.dataset.id;
             let newId = path.join(cwd, 'README.md');
@@ -278,6 +284,9 @@ class Menu extends UIBase {
               dest: newId
             });
           }
+
+          self.emit('change', self.getMenuData());
+          $(node.children()[0]).trigger('click');
         });
         break;
       case 'new_sibling':
@@ -289,8 +298,13 @@ class Menu extends UIBase {
             return dialog.alert('章节名不能叫:' + name);
           }
           name = name.trim();
-          let className = currentLevel($(ctxMenuTarget).attr('class'));
-          let cwd = ctxMenuTarget.dataset.cwd;
+          let className;
+          if (ctxMenuTarget) {
+            className = currentLevel($(ctxMenuTarget).attr('class'));
+          } else {
+            className = 'level0';
+          }
+          let cwd = ctxMenuTarget ? ctxMenuTarget.dataset.cwd : '';
           let id = self.genFileName(cwd, name);
           node = $('<li></li>');
           node.append(self.genNode({
@@ -299,8 +313,14 @@ class Menu extends UIBase {
             className: className,
             text: name
           }));
-          node.insertAfter($(ctxMenuTarget).parent());
+          if (ctxMenuTarget) {
+            node.insertAfter($(ctxMenuTarget).parent());
+          } else {
+            self.container.find('.bookmenu > ul').append(node);
+          }
           self.emit('change', self.getMenuData());
+          // switch to the new article
+          $(node.children()[0]).trigger('click');
         });
         break;
       case 'rename':
@@ -325,6 +345,8 @@ class Menu extends UIBase {
             return false;
           }
           $(ctxMenuTarget).text(name).attr('title', name);
+
+          self.emit('change', self.getMenuData());
         });
         break;
       case 'delete':
@@ -332,8 +354,6 @@ class Menu extends UIBase {
           if (bool) {
             $(ctxMenuTarget).parent().remove();
             self.emit('change', self.getMenuData());
-          } else {
-            dialog.cancel();
           }
         });
         break;
@@ -471,9 +491,13 @@ class Menu extends UIBase {
     e.stopPropagation();
     e.preventDefault();
   }
+  resize(obj) {
+    this.container.find('.treeview').height(obj.height - 30);
+  }
   genHTML(data, indent, cwd) {
     let html = ['<ul class="list">'];
     let self = this;
+    data = data || [];
     indent = indent || 0;
     cwd = cwd || '/';
     data.forEach(function (node) {

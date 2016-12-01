@@ -2,6 +2,9 @@
 /node_modules
 .DS_Store
 
+bin/create-dmg/
+bin/node_modules/
+
 # Build
 /release
 .node

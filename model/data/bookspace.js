@@ -1,31 +1,32 @@
 'use strict';
 
-const Storage = require('./storage');
+// const Storage = require('./storage');
 const path = require('path');
 const fs = require('fs');
-const os = require('os');
+const config = require('../../config');
 const log = require('../../lib/log');
 
 class Bookspace {
   constructor() {
-    this.bookspaceJson = JSON.parse(fs.readFileSync(path.join(Bookspace.RESOURCE_DIR, 'bookspace.json')));
-
-    if (!this.bookspaceJson.bookspacePath || !fs.existsSync(this.bookspaceJson.bookspacePath) || !fs.lstatSync(this.bookspaceJson.bookspacePath).isDirectory()) {
-      if(!fs.existsSync(Bookspace.defaultBookSpace)){
-        fs.mkdirSync(Bookspace.defaultBookSpace);  
-      }
-      this.bookspaceJson.bookspacePath = Bookspace.defaultBookSpace;
+    /*
+    if (!fs.existsSync(config.bookspaceConfig)) {
+      fs.writeFileSync(
+        config.bookspaceConfig,
+        fs.readFileSync(path.join(__dirname, '../../resource/bookspace_example.json'))
+      );
     }
-    this.initStorages();
-    this.books = [];
-    this.setBooks();
+    */
+    /**
+     * [bookspaceConfigPath description]
+     * @type {[type]}
+     */
+    this.config = config.bookspace;
+    this.books = this.config.books;
+    this.history = this.config.history;
   }
 
-  get bookspacePath(){
-    return this.bookspaceJson.bookspacePath;
-  }
-
-  initStorages(){
+  /*
+  initStorages() {
     log.info('boosapce path: ' + path.join(this.bookspaceJson.bookspacePath, 'bookspace.json'));
     this.dirStorage = new Storage(this.bookspaceJson.bookspacePath);
     this.fileStorage = new Storage(path.join(this.bookspaceJson.bookspacePath, 'bookspace.json'), {
@@ -35,19 +36,29 @@ class Bookspace {
       historyBookspaces: {}
     });
     this.data = this.fileStorage.getData();
-  }  
-
-  setBookspace(bookspacePath) {
-    if (this.bookspaceJson.bookspacePath) return;
-
-    this.bookspaceJson.bookspacePath = bookspacePath;
-    fs.writeFileSync(path.join(Bookspace.RESOURCE_DIR, 'bookspace.json'), JSON.stringify(this.bookspaceJson, null, 2));
-    this.fileStorage.resolve(path.join(bookspacePath, 'bookspace.json'));
-    this.setBooks(() => {
-      this.fileStorage.save(this.data);
-    });
   }
+  */
 
+  /**
+   * 设置bookspace跟目录
+   */
+  setRoot(root) {
+    this.config.root = root;
+    if (!fs.existsSync(root)) {
+      fs.mkdirSync(root);
+    }
+    this.save();
+  }
+  getRoot() {
+    return this.config.root;
+  }
+  getDefaultRoot() {
+    return this.config.defaultRoot;
+  }
+  save() {
+    config.save();
+  }
+  /*
   setBooks(callback) {
     let bookspaceMap = {};
     for (let key in this.data.bookspaces) {
@@ -84,7 +95,7 @@ class Bookspace {
 
     callback && callback();
   }
-
+  */
 
   pack(bookspace, isRemove) {
     let bookspacePath = Object(bookspace) === bookspace ? bookspace.path : bookspace;
@@ -148,7 +159,7 @@ class Bookspace {
         if (!fs.existsSync(bookspacePath) || !fs.lstatSync(bookspacePath).isDirectory()) {
           this.dirStorage.save(bookspacePath);
           let bookJson = this.bookspaceJson.bookJson;
-          fs.writeFileSync(path.join(bookspacePath, 'book.json'), JSON.stringify(Object.assign(branch, bookJson), null ,2));
+          fs.writeFileSync(path.join(bookspacePath, 'book.json'), JSON.stringify(Object.assign(branch, bookJson), null, 2));
         }
         this.books.push(branch);
         this.data.bookspaces[branch.name] = bookspacePath;
@@ -157,9 +168,15 @@ class Bookspace {
     }
   }
 
-  remove(bookspace) {
-    this.pack(bookspace, true);
-    this.fileStorage.save(this.data);
+  remove(bookPath) {
+    let books = this.books;
+
+    books.forEach(function (book, i, a) {
+      if (book.path === bookPath) {
+        a.splice(i, 1);
+      }
+    });
+    this.save();
   }
 
   retrieve(type) {
@@ -169,15 +186,53 @@ class Bookspace {
       return this.books;
     }
   }
-
-  save(bookspace) {
-    let branch = this.pack(bookspace);
-    this.fileStorage.save(this.data);
-    return branch;
+  /**
+   * 导入已经存在的book
+   * @param  {Path} dir 书的绝对路径
+   */
+  importBook(obj) {
+    let bookInfo = {
+      name: obj.name,
+      path: obj.path
+    };
+    this.books.push(bookInfo);
+    this.save();
+  }
+  /**
+   * 创建book目录
+   */
+  createBook(obj) {
+    let name = obj.name;
+    let dir = path.join(this.config.root, name);
+    // check if dir exists
+    if (fs.existsSync(dir)) {
+      return new Error('dir already in use');
+    }
+    fs.mkdirSync(dir);
+    fs.mkdirSync(path.join(dir, './src'));
+    let bookConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '../../resource/book_example.json')));
+    bookConfig.title = name;
+    fs.writeFileSync(
+      path.join(dir, './book.json'),
+      JSON.stringify(bookConfig, null, 2)
+    );
+    fs.writeFileSync(
+      path.join(dir, './src/README.md'),
+      fs.readFileSync(path.join(__dirname, '../../resource/readme_example.md'))
+    );
+    fs.writeFileSync(
+      path.join(dir, './src/SUMMARY.md'),
+      fs.readFileSync(path.join(__dirname, '../../resource/summary_example.md'))
+    );
+    let bookInfo = {
+      name: obj.name,
+      path: dir
+    };
+    this.books.push(bookInfo);
+    this.save();
+    return bookInfo;
   }
 }
-
-Bookspace.RESOURCE_DIR = path.resolve('./resources');
 
 Bookspace.TYPES = {
   history: 'history',
@@ -185,5 +240,4 @@ Bookspace.TYPES = {
   delete: 'delete'
 };
 
-Bookspace.defaultBookSpace = path.join(os.homedir(), 'documents/bookspace');
 module.exports = Bookspace;

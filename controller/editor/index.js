@@ -23,6 +23,7 @@ class AppEditor extends BaseCtrl {
    *         - bookRoot
    */
   constructor(options) {
+    log.debug('editor debug', options);
     super(options);
     let self = this;
 
@@ -112,8 +113,14 @@ class AppEditor extends BaseCtrl {
       });
     });
 
-    this.editor.on('change', function (file, value) {
-      preview.render(value);
+    this.menu.on('bookspace', function () {
+      self.emit('scene', {
+        scene: 'home'
+      });
+    });
+
+    this.editor.on('change', function (data) {
+      preview.render(data);
     });
 
     this.editor.on('save', function (file) {
@@ -126,33 +133,53 @@ class AppEditor extends BaseCtrl {
         });
       }
     });
-    ipcRenderer.on('screenshot', function () {
-      getImg();
-      ipcRenderer.send('create-sub-window', [screen.width, screen.height]);
-    });
-    this.editor.on('cut', function () {
-      ipcRenderer.send('hide-main-window');
-    });
-
     this.editor.on('scroll', function (data) {
       preview.scrollToFlag({
         line: data.line
       });
     });
+
+    this.clipboard.on('file-saved', function (fname) {
+      self.editor.insertCurrent('image', fname);
+    });
+
+    ipcRenderer.on('screenshot', function () {
+      getImg();
+      ipcRenderer.send('create-sub-window', [screen.width, screen.height]);
+    });
+    ipcRenderer.on('cuted', function () {
+      self.clipboard.paste();
+    });
+    this.editor.on('cut', function () {
+      ipcRenderer.send('hide-main-window');
+    });
+
+
     // 绑定黏贴事件
     window.addEventListener('paste', function (e) {
       self.clipboard.paste(e);
     }, true);
+
+    window.addEventListener('keydown', function (e) {
+      if (!e.metaKey) {
+        return;
+      }
+      switch (e.keyCode) {
+        case 80: // p
+          $('.preview').toggle();
+          break;
+      }
+    });
   }
   * load() {
     yield this.menu.render();
     log.debug('menu ok');
   }
   resize() {
-    $('#main').height($(window).height() - 40);
-    this.menu.resize();
+    let height = $(window).height();
+    this.menu.resize({height: height});
     this.editor.resize();
-    this.preview.resize();
+    // this.preview.resize();
   }
   destroy() {
     super.destroy();
@@ -173,7 +200,7 @@ function getImg() {
     },
     function (error, sources) {
       if (error) throw error;
-      console.log(sources[0].thumbnail.toDataURL());
+      // console.log(sources[0].thumbnail.toDataURL());
       window.localStorage.screenshot = sources[0].thumbnail.toDataURL();
     }
   );

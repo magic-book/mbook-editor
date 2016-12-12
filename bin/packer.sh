@@ -32,4 +32,6 @@ function pack_macox {
 
 if [ "$PLATFORM" = 'darwin' ]; then
   pack_macox
+else
+  echo windows
 fi

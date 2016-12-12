@@ -246,7 +246,7 @@ app.on('ready', function () {
   });
 
   ipcMain.on('close-cutwindow', function () {
-    cutWindow.close();
+    cutWindow.isClosable() && cutWindow.close();
     mainWindow.show();
   });
 

@@ -160,7 +160,7 @@ class AppEditor extends BaseCtrl {
     }, true);
 
     window.addEventListener('keydown', function (e) {
-      if (!e.metaKey) {
+      if (!e.metaKey && !e.altKey) {
         return;
       }
       switch (e.keyCode) {

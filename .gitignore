@@ -8,7 +8,7 @@ bin/node_modules/
 # Build
 /release
 .node
-
+config/config.js
 # Vim
 # swap
 [._]*.s[a-w][a-z]

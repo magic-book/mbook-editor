@@ -200,7 +200,7 @@ class Editor extends UIBase {
         clearTimeout(self.intervalDelaySave);
       }
       self.intervalDelaySave = setTimeout(function () {
-        self.intervalDelaySave = null;
+        // self.intervalDelaySave = null;
         co(function* () {
           yield self.currentFile.save();
           log.info('auto_save', self.currentFile.file);

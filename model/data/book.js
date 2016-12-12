@@ -65,6 +65,9 @@ class Book extends Events {
     return data.toString();
   }
   * saveFile(file, data) {
+    if (this.readOnly) {
+      return;
+    }
     if (!path.extname(file)) {
       return log.error('file should have .md ext');
     }
@@ -77,10 +80,16 @@ class Book extends Events {
     yield fsp.writeFile(fpath, data);
   }
   * deleteFile(file) {
+    if (this.readOnly) {
+      return;
+    }
     let fpath = path.join(this.src, file);
     yield fsp.unlink(fpath);
   }
   * renameFile(src, dest) {
+    if (this.readOnly) {
+      return;
+    }
     if (src === dest) {
       return;
     }

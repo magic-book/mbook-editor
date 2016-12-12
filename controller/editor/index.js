@@ -47,7 +47,8 @@ class AppEditor extends BaseCtrl {
       }
     });
     let book = new Book({
-      root: options.bookRoot
+      root: options.bookRoot,
+      readOnly: options.readOnly
     });
     this.book = book;
     log.info('init book model');
@@ -113,10 +114,8 @@ class AppEditor extends BaseCtrl {
       });
     });
 
-    this.menu.on('bookspace', function () {
-      self.emit('scene', {
-        scene: 'home'
-      });
+    this.menu.on('export_pdf', function () {
+      self.book.genPDF
     });
 
     this.editor.on('change', function (data) {

@@ -10,6 +10,7 @@ const log = require('./lib/log');
 const program = require('commander');
 const qs = require('querystring');
 const path = require('path');
+const fs = require('fs');
 // require('electron-cookies');
 const electron = require('electron');
 const menu = electron.Menu;
@@ -41,6 +42,29 @@ function checkAbsPath(p) {
   }
 }
 
+function cleanLog() {
+  let p = path.join(__dirname, 'log');
+  function fixZero(n) {
+    return n > 9 ? n : '0' + n;
+  }
+  fs.readdir(p, function (err, data) {
+    if (err) {
+      return;
+    }
+    var d = new Date(new Date().getTime() - 3600 * 24 * 1000 * 3);
+    var year = d.getFullYear();
+    var month = d.getMonth() + 1;
+    var day = d.getDate();
+    var maxLog = 'sys.' + year + '-' + fixZero(month) + '-' + fixZero(day) + 'log';
+    data.forEach(function (v) {
+      if (v < maxLog) {
+        fs.unlink(path.join(__dirname, './log', v));
+      }
+    });
+  });
+}
+
+cleanLog();
 
 const template = [
   {
@@ -227,7 +251,6 @@ app.on('ready', function () {
   });
 
   ipcMain.on('cut', function (e, arg) {
-    console.log('>>>>', arg);
     cutWindow.capturePage(arg, function (image) {
       clipboard.writeImage(image);
       cutWindow.close();

@@ -99,11 +99,12 @@ class File extends UIBase {
       this.editor.setOption('readOnly', true);
       return;
     }
-    this.editor.setOption('readOnly', false);
+    this.editor.setOption('readOnly', this.book.readOnly);
 
     co(function *() {
       let v = yield self.book.loadFile(self.file);
       self.value = v;
+      self.editor.getDoc().clearHistory();
     }).catch(function (e) {
       if (e.code === 'ENOENT' || e.code === 'ENOTDIR') {
         self.value = '';

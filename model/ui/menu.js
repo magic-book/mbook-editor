@@ -81,11 +81,6 @@ class Menu extends UIBase {
         self.emit('open_file', text, file);
       }
     });
-    this.container.find('#btn_bookspace').on('click', function (e) {
-      self.emit('bookspace');
-      e.stopPropagation();
-      e.preventDefault();
-    });
 
     this.container.find('.treeview').on('contextmenu', function (e) {
       // if (e.target.tagName === 'A') {
@@ -159,6 +154,10 @@ class Menu extends UIBase {
       }).catch(function (e) {
         log.error('save menu error', e.message);
       });
+    });
+
+    $('#export-pdf').on('click', function () {
+      self.emit('export_pdf');
     });
   }
   * render() {

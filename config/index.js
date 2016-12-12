@@ -29,8 +29,7 @@ let defaultConfig = {
   },
   logs: {
     sys: {
-      level: 'DEBUG',
-      // file: '/Users/jianxun/workspace/mbook/test.log'
+      level: 'DEBUG'
     }
   }
 };
@@ -40,10 +39,18 @@ let userConfig = {};
 try {
   userConfig = require(userConfigPath);
 } catch (e) {
-  // console.log('>>>>>', e.code);
   if (e.code === 'MODULE_NOT_FOUND') {
     fs.writeFileSync(userConfigPath, JSON.stringify(defaultConfig, null, 2));
+  } else {
+    console.error('loading app config failed', e.message); // eslint-disable-line
   }
+}
+
+let envConfig = {};
+try {
+  envConfig = require(path.join(__dirname, './config.js'));
+} catch (e) {
+  // do nothing
 }
 
 let config = {};
@@ -56,6 +63,7 @@ Object.defineProperties(config, {
   },
   reload: {
     value: function () {
+      delete require.cache[userConfigPath];
       let userConfig = require(userConfigPath);
       _.merge(config, userConfig);
     },
@@ -63,6 +71,6 @@ Object.defineProperties(config, {
   }
 });
 
-config = _.merge(config, defaultConfig, userConfig);
+config = _.merge(config, defaultConfig, envConfig, userConfig);
 
 module.exports = config;

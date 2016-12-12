@@ -32,12 +32,33 @@ npm-install:
 
 install: npm-install rebuild
 
+package-clean:
+	@rm -rf release
+	@rm -rf node_modules/codemirror/src
+	@ls node_modules/codemirror/theme/ | grep -v base16-light | xargs -I {} rm node_modules/codemirror/theme/{}
+	@ls node_modules/codemirror/mode/ | grep -v gfm | \
+		grep -v markdown | \
+		grep -v xml | \
+		grep -v meta | \
+		grep -v stex | \
+		xargs -I {} rm -r node_modules/codemirror/mode/{}
+	@rm -rf node_modules/jquery/src node_modules/jquery/external
+	@rm -rf node_modules/jquery/dist/core.js
+	@rm -rf node_modules/jquery/dist/jquery.min.js
+	@rm -rf node_modules/jquery/dist/jquery.min.map
+	@rm -rf node_modules/jquery/dist/jquery.slim.js
+	@rm -rf node_modules/jquery/dist/jquery.slim.min.js
+	@rm -rf node_modules/jquery/dist/jquery.slim.min.map
+	@rm -rf node_modules/ejs/test
+
 
 #TODO: icon and ignore files
-release:
+release: package-clean
+	@cp config/config_release.js config/config.js
 	@$(ELECTRON_PACKAGER) . MagicBook \
 		--platform=$(PLATFORM) \
 		--arch=$(ARCH) \
+		--icon=./mbook.icns \
 		--out=release \
 		--no-prune \
 		--overwrite \
@@ -46,10 +67,9 @@ release:
 		--ignore=node_modules/.npminstall \
 		--ignore=node_modules/mocha \
 		--ignore=node_modules/should \
-		--ignore=node_modules/electron-builder \
-		--ignore=node_modules/electron-rebuild \
-		--ignore=node_modules/electron \
-		--ignore=node_modules/electron-packager
+		--ignore=node_modules/electron
+	@rm -rf config/config.js
+	@bin/packer.sh
 
 pack-mac:
 	@if [ ! -d "bin/create-dmg" ]; then git clone git@github.com:andreyvit/create-dmg.git bin/create-dmg; fi

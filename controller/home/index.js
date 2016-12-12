@@ -1,6 +1,7 @@
 'use strict';
 
 const $ = require('jquery');
+const fs = require('fs');
 const view = require('../../lib/view');
 const log = require('../../lib/log');
 const path = require('path');
@@ -8,6 +9,16 @@ const BaseCtrl = require('../base_controller');
 const {dialog} = require('electron').remote;
 require('jqmodal');
 
+function isEmptyDir(p) {
+  let dir = fs.readdirSync(p);
+  dir = dir.filter(function (v) {
+    if (/^\./.test(v)) {
+      return false;
+    }
+    return true;
+  });
+  return dir.length === 0;
+}
 
 const Bookspace = require('../../model/data/bookspace');
 
@@ -122,6 +133,7 @@ class Home extends BaseCtrl {
     }));
   }
   bindUI() {
+    let self = this;
     this.modalbox.jqm({
       trigger: '.j-trigger-newBook',
       closeClass: 'j-trigger-closemodal',
@@ -132,15 +144,15 @@ class Home extends BaseCtrl {
     /**
      * 创建book按钮
      */
-    this.container.on('click', '.j-trigger-createBook', e => {
-      let inp = this.modalbox.find('input');
+    this.container.on('click', '.j-trigger-createBook', () => {
+      let inp = self.modalbox.find('input');
       let val = inp.val().trim();
       if (val) {
-        let bookInfo = this.bookspace.createBook({
+        let bookInfo = self.bookspace.createBook({
           name: val
         });
-        this.container.find('.bookspaces .book-opt').before(this.tplOpt.getBookspaceTpl(bookInfo));
-        this.modalbox.jqmHide();
+        self.container.find('.bookspaces .book-opt').before(this.tplOpt.getBookspaceTpl(bookInfo));
+        self.modalbox.jqmHide();
         inp.val('');
       } else {
         // TODO: 提醒用户，book名字必填
@@ -161,14 +173,25 @@ class Home extends BaseCtrl {
         });
         bookRoot = bookDir && bookDir[0];
         let bookInfo = {};
+        if (!bookRoot) {
+          return;
+        }
         try {
           bookInfo = require(path.join(bookRoot, './book.json'));
         } catch (e) {
-          log.error('loading book.json failed', e.message);
-          return;
+          if (e.code === 'MODULE_NOT_FOUND' && isEmptyDir(bookRoot)) {
+            self.bookspace.createBook({
+              name: 'newBook',
+              path: bookRoot
+            });
+            bookInfo = require(path.join(bookRoot, './book.json'));
+          } else {
+            log.error('loading book.json failed', e.code, e.message);
+            return;
+          }
         }
-        bookInfo.title && this.bookspace.importBook({
-          name: bookInfo.title,
+        self.bookspace.importBook({
+          name: bookInfo.title || 'Untitled',
           path: bookRoot
         });
       }
@@ -188,7 +211,7 @@ class Home extends BaseCtrl {
       let tgr = $(e.currentTarget);
       let bookTgr = tgr.parent();
       let bookPath = bookTgr.data('path');
-      this.bookspace.remove(path.resolve(bookPath));
+      self.bookspace.remove(path.resolve(bookPath));
       bookTgr.closest('li').remove();
     });
     /**
@@ -201,7 +224,7 @@ class Home extends BaseCtrl {
         properties: ['openDirectory'], defaultPath: Bookspace.defaultBookSpace
       });
       if (bookspaceDir && bookspaceDir[0]) {
-        this.container.find('.elem-choiceinp').text(bookspaceDir[0]);
+        self.container.find('.elem-choiceinp').text(bookspaceDir[0]);
       }
     });
     /**
@@ -210,11 +233,11 @@ class Home extends BaseCtrl {
     this.container.on('click', '.j-trigger-bookspace', e => {
       let val = this.container.find('.elem-choiceinp').text().trim();
       if (val) {
-        this.bookspace.setRoot(val);
-        this.container.find('.j-trigger-bookspacemodal').jqmHide();
+        self.bookspace.setRoot(val);
+        self.container.find('.j-trigger-bookspacemodal').jqmHide();
 
-        this.container.find('.bookspaces').remove();
-        this.container.prepend(this.tplOpt.getBookspacesTpl(this.bookspace.retrieve()));
+        // this.container.find('.bookspaces').remove();
+        // this.container.prepend(this.tplOpt.getBookspacesTpl(this.bookspace.retrieve()));
       }
     });
   }

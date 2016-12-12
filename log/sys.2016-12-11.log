@@ -1,0 +1,39 @@
+[34m20161211 21:40:45.739 INFO[0m #15416 sys (main.js:33:5) versions: 
+==============
+versions.app: 0.1.0
+version.electron: 1.4.8
+version.node: 6.5.0
+version.v8: 5.3.332.47
+version.chrome: 53.0.2785.143
+==============
+[36m20161211 21:40:46.685 DEBUG[0m #15416 sys (view/main.html:197:11) init default app
+[36m20161211 21:40:46.690 DEBUG[0m #15416 sys (view/main.html:113:13) loading controller:  /home
+[36m20161211 21:40:46.760 DEBUG[0m #15416 sys (view/main.html:121:15) new controller:  {}
+[34m20161211 21:40:46.774 INFO[0m #15416 sys (controller/home/index.js:30:9) app_home inited
+[34m20161211 21:40:46.867 INFO[0m #15416 sys (main.js:153:9) window is ready
+[34m20161211 21:41:09.745 INFO[0m #15439 sys (main.js:33:5) versions: 
+==============
+versions.app: 0.1.0
+version.electron: 1.4.8
+version.node: 6.5.0
+version.v8: 5.3.332.47
+version.chrome: 53.0.2785.143
+==============
+[36m20161211 21:41:10.314 DEBUG[0m #15439 sys (view/main.html:197:11) init default app
+[36m20161211 21:41:10.319 DEBUG[0m #15439 sys (view/main.html:113:13) loading controller:  /home
+[36m20161211 21:41:10.389 DEBUG[0m #15439 sys (view/main.html:121:15) new controller:  {}
+[34m20161211 21:41:10.402 INFO[0m #15439 sys (controller/home/index.js:30:9) app_home inited
+[34m20161211 21:41:10.453 INFO[0m #15439 sys (main.js:154:9) window is ready
+[34m20161211 21:41:32.968 INFO[0m #15459 sys (main.js:33:5) versions: 
+==============
+versions.app: 0.1.0
+version.electron: 1.4.8
+version.node: 6.5.0
+version.v8: 5.3.332.47
+version.chrome: 53.0.2785.143
+==============
+[36m20161211 21:41:33.586 DEBUG[0m #15459 sys (view/main.html:197:11) init default app
+[36m20161211 21:41:33.591 DEBUG[0m #15459 sys (view/main.html:113:13) loading controller:  /home
+[36m20161211 21:41:33.657 DEBUG[0m #15459 sys (view/main.html:121:15) new controller:  {}
+[34m20161211 21:41:33.670 INFO[0m #15459 sys (controller/home/index.js:30:9) app_home inited
+[34m20161211 21:41:33.717 INFO[0m #15459 sys (main.js:156:9) window is ready

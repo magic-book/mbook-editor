@@ -203,12 +203,11 @@ class Bookspace {
    */
   createBook(obj) {
     let name = obj.name;
-    let dir = path.join(this.config.root, name);
+    let dir = obj.path || path.join(this.config.root, name);
     // check if dir exists
-    if (fs.existsSync(dir)) {
-      return new Error('dir already in use');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
     }
-    fs.mkdirSync(dir);
     fs.mkdirSync(path.join(dir, './src'));
     let bookConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '../../resource/book_example.json')));
     bookConfig.title = name;

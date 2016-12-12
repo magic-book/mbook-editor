@@ -180,10 +180,7 @@
     .menu .dragging {
         background: #f8f8f8;
     }
-    .CodeMirror {
-        height: 100%;
-        overflow: hidden;
-    }
+
     .cm-s-base16-light span.cm-quote {
         color: #90a959;
     }
@@ -200,6 +197,9 @@
     }
     /** 编辑器主样式 */
     .cm-s-base16-light.CodeMirror {
+        height: 100%;
+        overflow: hidden;
+        line-height: 180%;
         background: transparent;
         font-family: 'menlo', 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
     }
@@ -227,6 +227,7 @@
 <div id="main" class="main">
     <div class="menu" id="menu">
         <div class="title title-bar" style="-webkit-app-region:drag;-webkit-user-select: none;">
+            <a id="export-pdf" style="float: right" class="icon iconfont icon-pdf1"></a>
             <span class="book-title" style="-webkit-app-region: no-drag;"></span>
         </div>
         <div class="treeview"></div>

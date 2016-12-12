@@ -17,19 +17,6 @@ elif [ "$UNAME_M" = "x86"]; then
 else
   ARCH=unknow
 fi
-ELECTRON_PACKAGER=./node_modules/.bin/electron-packager
-BUILD_IGNORE=./node_modules/.npminstall
-
-
-$ELECTRON_PACKAGER . MagicBook \
-  --platform=$PLATFORM \
-  --arch=$ARCH \
-  --out=release \
-  --overwrite \
-  --version=1.3.5\
-  --ignore=./node_modules/.npminstall \
-  --ignore=./node_modules/mocha --ignore=./node_modules/should\
-  --ignore=./release --ignore=./test
 
 ## pack mac os dmg
 function pack_macox {

@@ -18,6 +18,7 @@ class Book extends Events {
   constructor(options) {
     super();
     this.root = options.root;
+    this.readOnly = options.readOnly;
     this.loadBookInfo();
     this.src = path.join(options.root, this.bookInfo.root || '.');
     /**
@@ -53,8 +54,10 @@ class Book extends Events {
     this.bookInfo = bookInfo;
   }
   getBookTitle() {
-    console.log(this.bookInfo);
     return this.bookInfo.title;
+  }
+  * genPDF() {
+
   }
   * loadFile(file) {
     let fpath = path.join(this.src, file);

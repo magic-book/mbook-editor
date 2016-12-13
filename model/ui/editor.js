@@ -260,6 +260,9 @@ class Editor extends UIBase {
   }
 
   insertCurrent(type, content) {
+    if (!this.currentFile) {
+      return;
+    }
     let cursor = this.editor.getCursor();
     switch (type) {
       case 'image':

@@ -4,7 +4,7 @@
 
 bin/create-dmg/
 bin/node_modules/
-
+/log
 # Build
 /release
 .node

@@ -141,16 +141,20 @@ class AppEditor extends BaseCtrl {
     this.clipboard.on('file-saved', function (fname) {
       self.editor.insertCurrent('image', fname);
     });
-
+    /*
     ipcRenderer.on('screenshot', function () {
       getImg();
       ipcRenderer.send('create-sub-window', [screen.width, screen.height]);
     });
+    */
     ipcRenderer.on('cuted', function () {
       self.clipboard.paste();
     });
     this.editor.on('cut', function () {
-      ipcRenderer.send('hide-main-window');
+      ipcRenderer.send('screenshot-cut', {
+        hiddenMainWin: true,
+        size: [screen.width, screen.height]
+      });
     });
 
 
@@ -183,26 +187,6 @@ class AppEditor extends BaseCtrl {
   destroy() {
     super.destroy();
   }
-}
-
-function getImg() {
-  let desktopCapturer = require('electron').desktopCapturer;
-  let width = screen.width;
-  let height = screen.height;
-  desktopCapturer.getSources(
-    {
-      types: ['screen'],
-      thumbnailSize: {
-        width: width,
-        height: height
-      }
-    },
-    function (error, sources) {
-      if (error) throw error;
-      // console.log(sources[0].thumbnail.toDataURL());
-      window.localStorage.screenshot = sources[0].thumbnail.toDataURL();
-    }
-  );
 }
 
 module.exports = AppEditor;

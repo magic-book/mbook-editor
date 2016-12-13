@@ -34,6 +34,35 @@
       var log = require('../lib/log');
       var ipc = require('electron').ipcRenderer;
       var $ = require('jquery');
+      var screenshot;
+      function captureScreenShot(callback) {
+        let desktopCapturer = require('electron').desktopCapturer;
+        let width = screen.width;
+        let height = screen.height;
+        desktopCapturer.getSources(
+          {
+            types: ['screen'],
+            thumbnailSize: {
+              width: width,
+              height: height
+            }
+          },
+          function (err, sources) {
+            if (err) {
+              log.error('screenshot error', err);
+              return;
+            }
+            screenshot = sources[0].thumbnail.toDataURL();
+            callback && callback();
+          }
+        );
+      };
+
+      captureScreenShot(function () {
+        log.debug('screenshot done');
+        ipc.send('cutwindow-ready');
+        new Cutter;
+      });
 
       class Cutter {
         constructor() {
@@ -77,7 +106,7 @@
                 if (self.flagCut) {
                   self.reset();
                 } else {
-                  ipc.send('close-cutwindow');
+                  ipc.send('cutwindow-close');
                 }
                 break;
             }
@@ -93,7 +122,9 @@
             ctx.drawImage(img, 0, 0);
           };
 
-          img.src = localStorage.screenshot;
+          if (screenshot) {
+            img.src = screenshot;
+          }
         }
         drawCutLayer() {
           let ctx = this.canvasCutter.getContext('2d');
@@ -153,7 +184,7 @@
         }
       }
 
-      new Cutter;
+      
     </script>
   </body>
 </html>

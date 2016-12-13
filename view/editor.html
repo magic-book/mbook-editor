@@ -54,18 +54,18 @@
         background: #f9f9f9;
         border-left: 1px solid #eaeaea;
         border-right: 1px solid #f2f2f2;
-        padding: 0px 10px;
     }
     .preview {
         flex: 1;
         display: flex;
         flex-flow: column nowrap;
+        width: 100px; /** flex 布局防撑开 **/
     }
     .preview .inner {
         word-wrap: break-word;
         word-break: break-all;
         margin: 0;
-        overflow: scroll;
+        overflow: auto;
         position: relative;
         line-height: 180%;
         background: #fefefe;
@@ -201,6 +201,7 @@
         line-height: 180%;
         background: transparent;
         font-family: 'menlo', 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
+        padding: 10px;
     }
     .cm-s-base16-light .CodeMirror pre {
         padding: 0px 10px;

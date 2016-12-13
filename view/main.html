@@ -68,6 +68,8 @@
         #container {
           flex: 1px;
         }
+      </style>
+      <style id="win-scroll" type="text/css">
 
       </style>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
@@ -107,6 +109,30 @@
       const container = document.getElementById('container');
       let lastApp;
       let lastEditBook;
+
+      if (!/Macintosh/.test(window.navigator.userAgent)) {
+        $('#win-scroll').html(`
+          /* 设置滚动条的样式 */
+          ::-webkit-scrollbar {
+              width: 6px;
+          }
+
+          /* 滚动槽 */
+          ::-webkit-scrollbar-track {
+              border-radius: 3px;
+          }
+
+          /* 滚动条滑块 */
+          ::-webkit-scrollbar-thumb {
+              border-radius: 3px;
+              background: rgba(100,100,100,0.1);
+          }
+          ::-webkit-scrollbar-thumb:window-inactive {
+              background: rgba(255,0,0,0.4);
+          }`
+        );
+      }
+
       function router() {
         let hash = location.hash.substr(2);
         let url = require('url');

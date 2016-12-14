@@ -213,7 +213,7 @@ class Editor extends UIBase {
     editor.on('scroll', function (cm) {
       let top = cm.display.scroller.scrollTop;
       let lineNum = cm.lineAtHeight(top, 'local');
-      log.debug('editor scroll to line:', lineNum, 'height', top);
+      // log.debug('editor scroll to line:', lineNum, 'height', top);
       self.emit('scroll', {
         top: top,
         line: lineNum

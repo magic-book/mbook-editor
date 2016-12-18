@@ -78,18 +78,9 @@ class File extends UIBase {
     this.title = options.title;
     this.book = options.book;
     this.editor = options.editor;
+    this.loaded = false;
     this._unsaved = false;
-
-    this._change = (function () {
-      this._unsaved = true;
-    }).bind(this);
-    this.editor.on('change', this._change);
-    this.interval = setInterval(function () {
-      if (!this._unsaved) {
-        return;
-      }
-      co(this.save);
-    }, 5000);
+    this.editor.on('change', this._change.bind(this));
   }
   load() {
     let self = this;
@@ -97,14 +88,23 @@ class File extends UIBase {
       log.info('empty file');
       this.value = '';
       this.editor.setOption('readOnly', true);
+      setTimeout(function () {
+        self.loaded = true;
+        self.emit('load');
+      }, 0);
       return;
     }
     this.editor.setOption('readOnly', this.book.readOnly);
 
     co(function *() {
       let v = yield self.book.loadFile(self.file);
+      self.flagInit = true;
       self.value = v;
       self.editor.getDoc().clearHistory();
+      setTimeout(function () {
+        self.loaded = true;
+        self.emit('load');
+      }, 0);
     }).catch(function (e) {
       if (e.code === 'ENOENT' || e.code === 'ENOTDIR') {
         self.value = '';
@@ -113,12 +113,19 @@ class File extends UIBase {
       }
     });
   }
-  * save() {
-    let self = this;
-    this._unsaved = false;
-    if (!this.file) {
+  _change() {
+    if (!this.loaded) {
       return;
     }
+    this._unsaved = true;
+  }
+  * save() {
+    let self = this;
+    if (!this.file || !this._unsaved) {
+      return;
+    }
+    this._unsaved = false;
+    log.debug('write file content into disk');
     yield self.book.saveFile(self.file, self.value);
   }
   get value() {
@@ -168,15 +175,12 @@ class Editor extends UIBase {
       viewportMargin: 20,
       extraKeys: {
         'Cmd-S': function () {
-          if (!self.currentFile) {
-            return;
-          }
-          co(function* () {
-            yield self.currentFile.save();
-            self.emit('save', self.currentFile.file, self.currentFile.value);
-          }).catch(function (e) {
-            log.error('save file error:', e.message);
-          });
+          log.debug('[hot-key]save file');
+          self.saveFile();
+        },
+        'Ctrl-S': function () {
+          log.debug('[hot-key]save file');
+          self.saveFile();
         },
         'Alt-X': function () {
           self.emit('cut');
@@ -187,26 +191,23 @@ class Editor extends UIBase {
       }
     });
     editor.on('change', function () {
-      if (!self.currentFile) {
+      if (!self.currentFile || !self.currentFile.loaded) {
         return;
       }
+      saveBtn.addClass('file-change');
       self.emit('change', {
         title: self.currentFile.title,
         file: self.currentFile.file,
-        value: self.editor.getValue()
+        value: self.currentFile.value
       });
       // save file delay 3's
       if (self.intervalDelaySave) {
-        clearTimeout(self.intervalDelaySave);
+        return; // clearTimeout(self.intervalDelaySave);
       }
       self.intervalDelaySave = setTimeout(function () {
-        // self.intervalDelaySave = null;
-        co(function* () {
-          yield self.currentFile.save();
-          log.info('auto_save', self.currentFile.file);
-        }).catch(function (e) {
-          log.error('save file error:', e.message);
-        });
+        self.intervalDelaySave = null;
+        log.info('auto_save', self.currentFile.file);
+        self.saveFile();
       }, 3000);
     });
 
@@ -224,6 +225,14 @@ class Editor extends UIBase {
       self.emit('cut');
     });
 
+    let saveBtn = $('#edit_btn_save');
+    saveBtn.on('click', function () {
+      log.debug('[toolbar]save file');
+      self.saveFile();
+    });
+    this.on('save', function () {
+      saveBtn.removeClass('file-change');
+    });
     this.editor = editor;
   }
   renameFile(data) {
@@ -250,12 +259,31 @@ class Editor extends UIBase {
         book: self.book,
         editor: self.editor
       });
+      file.once('load', function () {
+        self.emit('load', {
+          title: file.title,
+          file: file.file,
+          value: file.value
+        });
+      });
       self.currentFile = file;
 
       file.load();
       self.editor.focus();
     }).catch(function (e) {
       log.error(e);
+    });
+  }
+  saveFile() {
+    let self = this;
+    if (!self.currentFile) {
+      return;
+    }
+    co(function* () {
+      yield self.currentFile.save();
+      self.emit('save', self.currentFile.file, self.currentFile.value);
+    }).catch(function (e) {
+      log.error('save file error:', e.message);
     });
   }
 

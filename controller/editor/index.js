@@ -115,23 +115,23 @@ class AppEditor extends BaseCtrl {
     });
 
     this.menu.on('export_pdf', function () {
-      self.book.genPDF
+      // self.book.genPDF();
+    });
+
+    this.editor.on('load', function (data) {
+      preview.render(data);
     });
 
     this.editor.on('change', function (data) {
       preview.render(data);
     });
 
+    /*
     this.editor.on('save', function (file) {
-      if (self.menu.isMenuFile(file)) {
-        log.info('menu file saved, reload menu');
-        co(function *() {
-          yield self.menu.render();
-        }).catch(function (err) {
-          log.error(err);
-        });
-      }
+
     });
+    */
+
     this.editor.on('scroll', function (data) {
       preview.scrollToFlag({
         line: data.line

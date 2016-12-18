@@ -35,19 +35,20 @@
         padding: 8px 10px;
     }
     .editor .toolbar a {
-        font-size: 12px;
-        border: 1px solid #aaa;
-        background: #afafaf;
-        color: #666;
-        border-radius: 4px;
+        font-size: 14px;
+        color: #fff;
         padding: 2px;
         display: inline-block;
         cursor: pointer;
         -webkit-app-region: no-drag;
     }
     .editor .toolbar a:hover {
-        color: #333;
-        background: #eee;
+        color: #666;
+        background: #ccc;
+        border-radius: 4px;
+    }
+    .editor .toolbar .file-change {
+        color: #95ff7e;
     }
     .editor .editor-cnt {
         flex: 1;
@@ -234,6 +235,7 @@
     </div>
     <div class="editor" id="editor">
         <div class="toolbar" style="-webkit-app-region:drag;">
+            <a id="edit_btn_save" class="icon iconfont icon-baocun2"></a>
             <a id="edit_btn_cut" class="icon iconfont icon-jianqie"></a>
             <!--
             <a class="icon iconfont icon-tupian"></a>

@@ -60,7 +60,7 @@
           color: #fff;
         }
         #sidetools .opt .active {
-          background: #444;
+          background: #333;
         }
         #sidetools .opt .iconfont {
           font-size: 22px;
@@ -81,13 +81,13 @@
           <img style="width: 48px; margin: 0px auto"src="imgs/mbook.png"/>
         </div>
         <div class="opt">
-          <a onclick="switchScene('home')">
+          <a id="btn_bookspace" onclick="switchScene(this, 'home')" class="active">
             <i class="icon iconfont icon-shuzhongdie"></i>
           </a>
-          <a onclick="switchScene('lastEditBook')">
+          <a id="btn_book" onclick="switchScene(this, 'lastEditBook')">
             <i class="icon iconfont icon-shufankai"></i>
           </a>
-          <a onclick="switchScene('help')">
+          <a id="btn_help" onclick="switchScene(this, 'help')">
             <i class="icon iconfont icon-bangzhu"></i>
           </a>
         </div>
@@ -168,13 +168,7 @@
           lastApp = new Controller(options);
           lastApp.resize && lastApp.resize();
           lastApp.on('scene', function (data) {
-            let scene = data.scene;
-            let query = qs.stringify(data.options);
-            if (data.scene === 'editor' && data.options && !data.options.ignore) {
-              lastEditBook = data;
-            }
-            location.hash = `#!/${scene}?${query}`;
-            // ipcRenderer.sendSync('scene', data);
+            window.switchScene(null, data.scene, data.options);
           });
         } catch (e) {
           log.error('init controller error', e.stack);
@@ -188,7 +182,11 @@
 
         lastApp && lastApp.resize && lastApp.resize();
       }
-      window.switchScene = function (scene, options) {
+      window.switchScene = function (node, scene, options) {
+        if (node) {
+          $(node).parent().find('.active').removeClass('active');
+          $(node).addClass('active');
+        }
         switch (scene) {
           case 'help':
             scene = 'editor';
@@ -200,14 +198,31 @@
             break;
           case 'lastEditBook':
             if (!lastEditBook) {
+              setTimeout(function () {
+                $(node).removeClass('active');
+              }, 300);
               return;
             }
             scene = 'editor';
             options = lastEditBook.options;
             break;
+          case 'editor':
+            if (node) {
+              $(node).removeClass('active');
+            } else {
+              $('#btn_book').parent().find('.active').removeClass('active');
+            }
+            $('#btn_book').addClass('active');
+            if (options && options.ignore) {
+              lastEditBook = {
+                scene: scene,
+                options: options
+              };
+            }
+            break;
         }
-
-        lastApp && lastApp.emit('scene', {scene: scene, options: options});
+        let query = qs.stringify(options);
+        location.hash = `#!/${scene}?${query}`;
       };
       window.addEventListener('resize', resize);
       window.addEventListener('hashchange', function () {

@@ -156,6 +156,13 @@ class Menu extends UIBase {
       });
     });
 
+    options.container.find('.tools').on('click', 'a', function () {
+      let id = this.id;
+      switch (id) {
+        default:
+          log.error('not support now');
+      }
+    });
     $('#export-pdf').on('click', function () {
       self.emit('export_pdf');
     });
@@ -491,7 +498,7 @@ class Menu extends UIBase {
     e.preventDefault();
   }
   resize(obj) {
-    this.container.find('.treeview').height(obj.height - 30);
+    this.container.find('.treeview').height(obj.height - 60);
   }
   genHTML(data, indent, cwd) {
     let html = ['<ul class="list">'];

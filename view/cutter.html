@@ -12,6 +12,7 @@
         height: 100%;
         overflow: hidden;
         -webkit-app-region: no-drag;
+        background: #aaa;
       }
 
       .canvas {
@@ -34,7 +35,9 @@
       var log = require('../lib/log');
       var ipc = require('electron').ipcRenderer;
       var $ = require('jquery');
-      var screenshot;
+      var screenshot = window.localStorage.__screenshot;
+
+      /*
       function captureScreenShot(callback) {
         let desktopCapturer = require('electron').desktopCapturer;
         let width = screen.width;
@@ -56,13 +59,8 @@
             callback && callback();
           }
         );
-      };
-
-      captureScreenShot(function () {
-        log.debug('screenshot done');
-        ipc.send('cutwindow-ready');
-        new Cutter;
-      });
+      }
+      */
 
       class Cutter {
         constructor() {
@@ -184,7 +182,8 @@
         }
       }
 
-      
+      new Cutter;
+
     </script>
   </body>
 </html>

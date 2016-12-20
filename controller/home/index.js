@@ -88,8 +88,8 @@ class Home extends BaseCtrl {
                     <div class="modal-body">
                       <div class="modal-form">
                         <label>Name</label>
-                        <input type="text" placeholder="My Awesome Book"/>
-                        <p class="help-block">It will create a new local book on this computer</p>
+                        <input type="text" placeholder="My Awesome Book" onkeyup="document.querySelector('#preview_book_name').innerText = this.value;console.log(this.value)"/>
+                        <p class="help-block">create book at: ${data.root}/<span id="preview_book_name"></span></p>
                       </div>
                     </div>
                     <div class="modal-footer">
@@ -129,7 +129,8 @@ class Home extends BaseCtrl {
 
   createDOM(bookspaces) {
     this.container.html(this.tplOpt.getBookspacesTpl(bookspaces) + this.tplOpt.dialogTpl({
-      defaultPath: this.bookspace.getDefaultRoot()
+      defaultPath: this.bookspace.getDefaultRoot(),
+      root: this.bookspace.getRoot()
     }));
   }
   bindUI() {

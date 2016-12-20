@@ -98,7 +98,6 @@ class File extends UIBase {
 
     co(function *() {
       let v = yield self.book.loadFile(self.file);
-      self.flagInit = true;
       self.value = v;
       self.editor.getDoc().clearHistory();
       setTimeout(function () {
@@ -108,6 +107,11 @@ class File extends UIBase {
     }).catch(function (e) {
       if (e.code === 'ENOENT' || e.code === 'ENOTDIR') {
         self.value = '';
+        self.editor.getDoc().clearHistory();
+        setTimeout(function () {
+          self.loaded = true;
+          self.emit('load');
+        }, 0);
       } else {
         log.error('editor loading file content failed:', e.stack);
       }
@@ -138,7 +142,7 @@ class File extends UIBase {
     clearInterval(this.interval);
     if (!doNotSave) {
       yield this.save();
-      log.info(`file saved: ${this.file}`);
+      log.debug(`file saved before close: ${this.file}`);
     }
     this.interval = null;
     this.file = null;
@@ -304,7 +308,7 @@ class Editor extends UIBase {
     let cnt = this.editCnt;
     let parent = cnt.parent();
     cnt.css({
-      height: (parent.height() - 36) + 'px'
+      height: (parent.height() - 36 - 20) + 'px'
     });
 
     this.editor.refresh();

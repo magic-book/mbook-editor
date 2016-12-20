@@ -65,6 +65,7 @@
         background: #f9f9f9;
         border-left: 1px solid #eaeaea;
         border-right: 1px solid #f2f2f2;
+        padding: 10px 0px;
     }
     .preview {
         flex: 1;
@@ -206,7 +207,7 @@
         line-height: 180%;
         background: transparent;
         font-family: 'menlo', 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
-        padding: 10px;
+        padding: 0px 10px;
     }
     .cm-s-base16-light .CodeMirror pre {
         padding: 0px 10px;
@@ -235,17 +236,17 @@
             <span class="book-title" style="-webkit-app-region: no-drag;"></span>
         </div>
         <div class="tools">
-            <a id="git_tools" class="icon iconfont icon-gitbranch" href="" ></a>
-            <a id="src_dir" class="icon iconfont icon-ttpodicon" href="" ></a>
-            <a id="export_pdf" class="icon iconfont icon-pdf1" href="" ></a>
+            <a id="git_tools" title="git tools" class="icon iconfont icon-gitbranch" href="" ></a>
+            <a id="src_dir" title="explorer book dir" class="icon iconfont icon-ttpodicon" href="" ></a>
+            <a id="export_pdf" title="export pdf" class="icon iconfont icon-pdf1" href="" ></a>
         </div>
         <div class="treeview"></div>
 
     </div>
     <div class="editor" id="editor">
         <div class="toolbar" style="-webkit-app-region:drag;">
-            <a id="edit_btn_save" class="icon iconfont icon-baocun2"></a>
-            <a id="edit_btn_cut" class="icon iconfont icon-jianqie"></a>
+            <a id="edit_btn_save" title="save" class="icon iconfont icon-baocun2"></a>
+            <a id="edit_btn_cut" title="cut" class="icon iconfont icon-jianqie"></a>
             <!--
             <a class="icon iconfont icon-tupian"></a>
             <a class="icon iconfont icon-shipin"></a>

@@ -17,6 +17,29 @@ const Editor = require('../../model/ui/editor');
 const Preview = require('../../model/ui/preview');
 const ClipBoard = require('../../model/data/clipboard');
 
+function captureScreenShot(callback) {
+  let desktopCapturer = require('electron').desktopCapturer;
+  let width = screen.width;
+  let height = screen.height;
+  desktopCapturer.getSources(
+    {
+      types: ['screen'],
+      thumbnailSize: {
+        width: width,
+        height: height
+      }
+    },
+    function (err, sources) {
+      if (err) {
+        log.error('screenshot error', err);
+        return;
+      }
+      window.localStorage.__screenshot = sources[0].thumbnail.toDataURL();
+      callback && callback();
+    }
+  );
+}
+
 class AppEditor extends BaseCtrl {
   /**
    * @param  {Object} options
@@ -150,11 +173,25 @@ class AppEditor extends BaseCtrl {
     ipcRenderer.on('cuted', function () {
       self.clipboard.paste();
     });
+    ipcRenderer.on('hide-main-window-done', function () {
+      log.debug('then capture screen');
+      captureScreenShot(function () {
+        ipcRenderer.send('screenshot-cut', {
+          width: screen.width,
+          height: screen.height
+        });
+      });
+    });
+
     this.editor.on('cut', function () {
+      log.debug('start cut, first hide main window');
+      ipcRenderer.send('hide-main-window');
+      /*
       ipcRenderer.send('screenshot-cut', {
         hiddenMainWin: true,
         size: [screen.width, screen.height]
       });
+      */
     });
 
 

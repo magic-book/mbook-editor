@@ -217,37 +217,29 @@ app.on('ready', function () {
     event.returnValue = 'success';
   });
 
-  ipcMain.on('screenshot-cut', function (e, data) {
-    if (data.hiddenMainWin) mainWindow.hide();
-    // e.sender.send('screenshot');
-   // setTimeout(function () {
-        cutWindow = new BrowserWindow({
-          width: data.size[0],
-          height: data.size[1],
-          modal: false,
-          parent: mainWindow,
-          fullscreen: true,
-          resizable: false,
-          skipTaskbar: true,
-          frame: false,
-          transparent: true,
-          show: false
-        });
-        cutWindow.loadURL(`file://${__dirname}/view/cutter.html`);
-        
-        /*
-        cutWindow.once('ready-to-show', () => {
-          cutWindow.show();
-        });
-        */
-        // cutWindow.webContents.openDevTools(true);
-        // window.localStorage.screenshot = sources[0].thumbnail.toDataURL();
-      //});
-    //}, 0);
+  ipcMain.on('hide-main-window', function (event) {
+    mainWindow.hide();
+    setTimeout(function () {
+      event.sender.send('hide-main-window-done');
+    }, 0);
   });
-  ipcMain.on('cutwindow-ready', function () {
-    log.debug('show cutwindow');
-    cutWindow.show();
+
+  ipcMain.on('screenshot-cut', function (e, data) {
+    cutWindow = new BrowserWindow({
+      width: data.width,
+      height: data.height,
+      modal: false,
+      parent: mainWindow,
+      fullscreen: true,
+      resizable: false,
+      skipTaskbar: true,
+      frame: false,
+      transparent: false,
+      show: true
+    });
+    cutWindow.loadURL(`file://${__dirname}/view/cutter.html`);
+    log.info('show cutWindow');
+    // cutWindow.webContents.openDevTools(true);
   });
 
   ipcMain.on('cutwindow-close', function () {

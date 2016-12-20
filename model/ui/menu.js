@@ -498,7 +498,7 @@ class Menu extends UIBase {
     e.preventDefault();
   }
   resize(obj) {
-    this.container.find('.treeview').height(obj.height - 60);
+    this.container.find('.treeview').height(obj.height - 72);
   }
   genHTML(data, indent, cwd) {
     let html = ['<ul class="list">'];

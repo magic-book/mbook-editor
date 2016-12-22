@@ -49,7 +49,7 @@ class Home extends BaseCtrl {
     this.modalbox = null;
     let tplOpt = this.tplOpt = {
       getBookspaceTpl(item) {
-        return `<li class="${item.icon ? '' : 'cover-failed'}">
+        return `<li class="${item.icon ? '' : 'cover-failed'}" title="${item.path}">
                   <div class="cover j-trigger-openBook" data-path="${item.path}">
                     <img src="">
                     <div class="close j-trigger-removebook">

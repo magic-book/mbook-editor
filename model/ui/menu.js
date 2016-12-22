@@ -159,6 +159,11 @@ class Menu extends UIBase {
     options.container.find('.tools').on('click', 'a', function () {
       let id = this.id;
       switch (id) {
+        case 'explorer':
+          log.info('open book dir', 'open ' + self.book.src);
+          let cmd = require('os').platform() === 'win32' ? 'start' : 'open';
+          require('child_process').exec(cmd + ' ' + self.book.src);
+          break;
         default:
           log.error('not support now');
       }

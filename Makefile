@@ -34,6 +34,7 @@ install: npm-install rebuild
 
 package-clean:
 	@rm -rf release
+        @rm -rf run.sock
 	@rm -rf node_modules/codemirror/src
 	@ls node_modules/codemirror/theme/ | grep -v base16-light | xargs -I {} rm node_modules/codemirror/theme/{}
 	@ls node_modules/codemirror/mode/ | grep -v gfm | \
@@ -54,12 +55,13 @@ package-clean:
 
 #TODO: icon and ignore files
 release: package-clean
+	@mkdir release
 	@cp config/config_release.js config/config.js
 	@$(ELECTRON_PACKAGER) . MagicBook \
 		--platform=$(PLATFORM) \
 		--arch=$(ARCH) \
 		--icon=./mbook.icns \
-		--out=release \
+		--out=./release \
 		--no-prune \
 		--overwrite \
 		--version=$(ELECTRON_VERSION) \
@@ -69,7 +71,7 @@ release: package-clean
 		--ignore=node_modules/should \
 		--ignore=node_modules/electron
 	@rm -rf config/config.js
-	@bin/packer.sh
+	#@bin/packer.sh
 
 pack-mac:
 	@if [ ! -d "bin/create-dmg" ]; then git clone git@github.com:andreyvit/create-dmg.git bin/create-dmg; fi

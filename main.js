@@ -123,6 +123,11 @@ electron.crashReporter.start({
   autoSubmit: true
 });
 
+try {
+  fs.unlinkSync(path.join(__dirname, 'run.sock'));
+} catch (e) {
+
+}
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the javascript object is GCed.
 let mainWindow = null;
@@ -185,7 +190,10 @@ app.on('ready', function () {
     // console.log(event, url);
     event.preventDefault();
   });
-
+  ipcMain.on('exit', function () {
+    mainWindow.close();
+    cutWindow && cutWindow.isClosable() && cutWindow.close();
+  });
   /**
    * 控制器ready事件
    */
@@ -259,4 +267,65 @@ app.on('ready', function () {
   //   console.log(evt);
   //   this.executeJavaScript('', function () {});
   // });
+  //
+  const http = require('http');
+  const URL = require('url');
+  const marked = require('./lib/marked.js');
+  const path = require('path');
+  const renderer = new marked.Renderer();
+  let resRoot;
+
+  renderer.image = function (href, title, text) {
+    var out = '<img src="' + path.join(resRoot, href) + '" alt="' + text + '"';
+    if (title) {
+      out += ' title="' + title + '"';
+    }
+    out +=  '/>';
+    return out;
+  };
+
+  marked.setOptions({
+    renderer: renderer,
+    gfm: true,
+    tables: true,
+    breaks: false,
+    pedantic: false,
+    sanitize: false,
+    smartLists: true,
+    smartypants: false,
+    highlight: function (code) {
+      return require('highlight.js').highlightAuto(code).value;
+    }
+  });
+
+  function resolvePath(base, file) {
+    return path.join(path.dirname(base), file);
+  }
+
+  function resolveRes(file, md) {
+    let regImg = /(\!\[[^\]]*\]\()([^\)]*)(\))/g;
+    return md.replace(regImg, function (m0, m1, m2, m3) {
+      m2 = resolvePath(file, m2);
+      return m1 + m2 + m3;
+    });
+  }
+
+  const serv = http.createServer(function (req, res) {
+    let url = URL.parse(req.url, true);
+    let query = url.query;
+    // console.log('Message received from main script', query);
+    let file = query.file || '';
+    let md = query.md || '';
+
+    resRoot = query.resRoot || '';
+
+    marked(resolveRes(file, md) || '', function (err, data) {
+      if (err) {
+        return res.end(JSON.stringify({error: err}));
+      }
+      // console.log('>>>>', data);
+      res.end(JSON.stringify({data: data}));
+    });
+  });
+  serv.listen(path.join(__dirname, 'run.sock'));
 });

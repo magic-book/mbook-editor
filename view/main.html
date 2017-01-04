@@ -68,6 +68,14 @@
         #container {
           flex: 1px;
         }
+        #win-close {
+          display:none;
+          position: fixed;
+          right: 10px;
+          top: 10px;
+          z-index: 500;
+          cursor: pointer;
+        }
       </style>
       <style id="win-scroll" type="text/css">
 
@@ -75,6 +83,7 @@
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
   <body>
+    <a id="win-close" href=""><img src="./imgs/btn_close_hover.png"/></a>
     <div style="display: flex; flex-flow: row nowrap;">
       <div id="sidetools">
         <div style="margin: 40px 0px 20px 0px; text-align: center;">
@@ -100,6 +109,7 @@
     'use strict';
     (function () {
       const path = require('path');
+      const os = require('os');
       const $ = require('jquery');
       const {ipcRenderer} = require('electron');
       const qs = require('querystring');
@@ -131,6 +141,12 @@
               background: rgba(255,0,0,0.4);
           }`
         );
+      }
+
+      if (/^win/.test(os.platform())) {
+        $('#win-close').show().on('click', function () {
+          ipcRenderer.sendSync('exit');
+        });
       }
 
       function router() {

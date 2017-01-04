@@ -7,6 +7,7 @@ const path = require('path');
 const contextMenu = require('./contextmenu');
 const dialogs = require('dialogs');
 const dialog = dialogs({});
+const Git = require('./git');
 
 function nextLevel(name) {
   name = currentLevel(name);
@@ -50,6 +51,10 @@ class Menu extends UIBase {
       <div class="bookmenu"></div>
       <div class="contextmenu"></div>
     `);
+    this.git = new Git({
+      container: options.container.find('.git'),
+      bookRoot: options.book.root
+    });
     this.container.find('.book-title').html(options.book.getBookTitle());
     let menuList = options.container.find('.bookmenu');
 
@@ -75,7 +80,7 @@ class Menu extends UIBase {
         target = target.parentNode;
       }
       let file = target.dataset.id;
-      let text = target.innerText;
+      let text = $(target).find('.name').text();
       if (self.activeMenuItem(target)) {
         log.info('menu clicked:', text, '>', file);
         self.emit('open_file', text, file);
@@ -158,18 +163,22 @@ class Menu extends UIBase {
 
     options.container.find('.tools').on('click', 'a', function () {
       let id = this.id;
+      let cmd;
       switch (id) {
         case 'explorer':
           log.info('open book dir', 'open ' + self.book.src);
-          let cmd = require('os').platform() === 'win32' ? 'start' : 'open';
+          cmd = require('os').platform() === 'win32' ? 'start' : 'open';
           require('child_process').exec(cmd + ' ' + self.book.src);
+          break;
+        case 'export_pdf':
+          self.emit('export-pdf');
+          break;
+        case 'git':
+          self.git.show();
           break;
         default:
           log.error('not support now');
       }
-    });
-    $('#export-pdf').on('click', function () {
-      self.emit('export_pdf');
     });
   }
   * render() {

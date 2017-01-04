@@ -6,5 +6,12 @@
   "isbn": "",
   "language": " zh-cn",
   "direction": "ltr",
-  "gitbook": "3.2.2"
+  "gitbook": "3.2.2",
+  "plugins": [
+    "-search",
+    "-sharing",
+    "splitter",
+    "-theme-default",
+    "theme-mbook"
+  ]
 }

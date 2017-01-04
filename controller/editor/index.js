@@ -2,7 +2,7 @@
 
 const $ = require('jquery');
 const co = require('co');
-const fs = require('fs');
+const fs = require('xfs');
 const path = require('path');
 const mmm = require('mmmagic');
 const Magic = mmm.Magic;
@@ -16,6 +16,7 @@ const Menu = require('../../model/ui/menu');
 const Editor = require('../../model/ui/editor');
 const Preview = require('../../model/ui/preview');
 const ClipBoard = require('../../model/data/clipboard');
+const Renderer = require('../../model/data/book_renderer');
 
 function captureScreenShot(callback) {
   let desktopCapturer = require('electron').desktopCapturer;
@@ -137,15 +138,16 @@ class AppEditor extends BaseCtrl {
       });
     });
 
-    this.menu.on('export_pdf', function () {
-      // self.book.genPDF();
+    this.menu.on('export-pdf', () => {
+
     });
 
     this.editor.on('load', function (data) {
       preview.render(data);
     });
 
-    this.editor.on('change', function (data) {
+    this.editor.on('save', function (data) {
+      console.log('file saved', data);
       preview.render(data);
     });
 
@@ -223,6 +225,109 @@ class AppEditor extends BaseCtrl {
   }
   destroy() {
     super.destroy();
+  }
+}
+
+
+'use strict';
+
+function genOptions(options) {
+  if (options.pdfHeader) {
+    options.pdfHeader = options.pdfHeader.replace(/\n/g, '');
+  }
+  if (options.pdfFooter) {
+    options.pdfFooter = options.pdfFooter.replace(/\n/g, '');
+  }
+
+  // options ref:https://manual.calibre-ebook.com/generated/en/ebook-convert.html
+  let tpl = `
+--title="${options.title}"
+--comments="${options.description}"
+--isbn="${options.isbn}"
+--authors="${options.author}"
+--language="${options.language}"
+--book-producer="${options.producer}"
+--publisher="${options.publisher}"
+--chapter="descendant-or-self::*[contains(concat(' ', normalize-space(@class), ' '), ' book-chapter ')]"
+--level1-toc="descendant-or-self::*[contains(concat(' ', normalize-space(@class), ' '), ' book-chapter-1 ')]"
+--level2-toc="descendant-or-self::*[contains(concat(' ', normalize-space(@class), ' '), ' book-chapter-2 ')]"
+--level3-toc="descendant-or-self::*[contains(concat(' ', normalize-space(@class), ' '), ' book-chapter-3 ')]"
+--max-levels=5
+--no-chapters-in-toc
+--breadth-first
+--chapter-mark=pagebreak
+--page-breaks-before=/
+--margin-left=${options.marginLeft}
+--margin-right=${options.marginRight}
+--margin-top=${options.marginTop}
+--margin-bottom=${options.marginBottom}
+--pdf-default-font-size=${options.fontSize}
+--pdf-mono-font-size=${options.monoFontSize}
+--paper-size=${options.paperSize}
+--pdf-page-numbers
+--pdf-sans-family="${options.fontFamily}"
+--pdf-header-template="${options.pdfHeader}"
+--pdf-footer-template="${options.pdfFooter}"
+  `;
+  return tpl.split(/\n/g);
+}
+
+function pdfHeader() {
+  return `
+<div class="pdf-header" style="font-size:10px; padding: 10px 0px; border-bottom: 1px solid #eee; color: #aaa;">
+    _SECTION_ <span style="float: right;">-_PAGENUM_-</span>
+</div>`.replace(/>\s+</g, '><').replace(/"/g, '\\"');
+}
+
+function pdfFooter() {
+  return `
+    <div class="pdf-footer" style="font-size:10px; padding: 10px 0px; border-top: 1px solid #eee; color: #aaa;">
+       _SECTION_ <span style="float: right;">-_PAGENUM_-</span>
+    </div>`.replace(/>\s+</g, '><').replace(/"/g, '\\"');
+}
+
+const defaultOptions = {
+  producer: 'MBook',
+  language: 'en-us',
+  marginLeft: 62,
+  marginRight: 62,
+  marginTop: 56,
+  marginBottom: 56,
+  fontSize: 12,
+  monoFontSize: 12,
+  paperSize: 'a4',
+  fontFamily: 'Arial',
+  pdfHeader: pdfHeader(),
+  pdfFooter: pdfFooter()
+};
+
+const _ = require('lodash');
+const childProcess = require('child_process');
+
+class Convertor {
+  constructor(options) {
+    this.executor = 'ebook-convert',
+    this.options = _.merge({}, defaultOptions, options || {});
+  }
+  exec(input, output) {
+    let args = [
+      input,
+      output
+    ].concat(genOptions(this.options));
+    log.info(args.join(' '));
+    let cp = childProcess.exec(this.executor + ' ' + args.join(' '));
+    cp.stdout.on('data', function (data) {
+      log.info('>>>', data);
+    }); // pipe(process.stdout);
+    cp.stderr.on('data', function (data) {
+      log.info('>>>', data);
+    }); // pipe(process.stderr);
+    cp.on('error', function (err) {
+      log.error('>>>', err);
+    });
+    cp.on('exit', function () {
+      log.error('ebook convert done', arguments);
+    });
   }
 }
 

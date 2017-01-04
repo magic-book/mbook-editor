@@ -4,7 +4,9 @@ const $ = require('jquery');
 const fs = require('fs');
 const view = require('../../lib/view');
 const log = require('../../lib/log');
+const msg = require('../../model/ui/message');
 const path = require('path');
+const simpleGit = require('simple-git');
 const BaseCtrl = require('../base_controller');
 const {dialog} = require('electron').remote;
 require('jqmodal');
@@ -87,9 +89,9 @@ class Home extends BaseCtrl {
                     </div>
                     <div class="modal-body">
                       <div class="modal-form">
-                        <label>Name</label>
-                        <input type="text" placeholder="My Awesome Book" onkeyup="document.querySelector('#preview_book_name').innerText = this.value;console.log(this.value)"/>
-                        <p class="help-block">create book at: ${data.root}/<span id="preview_book_name"></span></p>
+                        <label>new book name, or git repository address: </label>
+                        <input type="text" placeholder="My Awesome Book" onkeyup="document.querySelector('#preview_book_name').innerText = this.value.replace(/.*?([^:\/]+)\.git$/, '$1'); console.log(this.value)"/>
+                        <p class="help-block">book will be stored at : ${data.root}/<span id="preview_book_name"></span></p>
                       </div>
                     </div>
                     <div class="modal-footer">
@@ -148,15 +150,39 @@ class Home extends BaseCtrl {
     this.container.on('click', '.j-trigger-createBook', () => {
       let inp = self.modalbox.find('input');
       let val = inp.val().trim();
+      function getGitDirName(gitPath) {
+        let tmp = gitPath.split(':')[1];
+        let dirName = path.basename(tmp);
+        return dirName.replace(/.git$/, '');
+      }
       if (val) {
-        let bookInfo = self.bookspace.createBook({
-          name: val
-        });
-        self.container.find('.bookspaces .book-opt').before(this.tplOpt.getBookspaceTpl(bookInfo));
-        self.modalbox.jqmHide();
-        inp.val('');
+        if (/\.git$/.test(val)) {
+          // git@git-service.com:$groupName/$projectName.git
+          let git = simpleGit();
+          git.clone(val, self.bookspace.getRoot(), function (err) {
+            if (err) {
+              msg.show(err);
+            } else {
+              let bookInfo = self.bookspace.createBook({
+                name: getGitDirName(val)
+              });
+              self.container.find('.bookspaces .book-opt').before(this.tplOpt.getBookspaceTpl(bookInfo));
+              self.modalbox.jqmHide();
+              inp.val('');
+            }
+          });
+        } else {
+          let bookInfo = self.bookspace.createBook({
+            name: val
+          });
+          self.container.find('.bookspaces .book-opt').before(this.tplOpt.getBookspaceTpl(bookInfo));
+          self.modalbox.jqmHide();
+          inp.val('');
+        }
       } else {
-        // TODO: 提醒用户，book名字必填
+        inp.css({
+          border: '1px solid #f30'
+        });
       }
     });
     /**
@@ -180,10 +206,11 @@ class Home extends BaseCtrl {
         try {
           bookInfo = require(path.join(bookRoot, './book.json'));
         } catch (e) {
-          if (e.code === 'MODULE_NOT_FOUND' && isEmptyDir(bookRoot)) {
+          if (e.code === 'MODULE_NOT_FOUND') {
             self.bookspace.createBook({
               name: 'newBook',
-              path: bookRoot
+              path: bookRoot,
+              empty: isEmptyDir(bookRoot)
             });
             bookInfo = require(path.join(bookRoot, './book.json'));
           } else {

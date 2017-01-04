@@ -204,25 +204,42 @@ class Bookspace {
   createBook(obj) {
     let name = obj.name;
     let dir = obj.path || path.join(this.config.root, name);
+    let empty = obj.empty;
+    let rootDir;
     // check if dir exists
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir);
     }
-    fs.mkdirSync(path.join(dir, './src'));
+    if (empty) {
+      fs.mkdir(path.join(dir, './src'));
+      rootDir = './src';
+    } else {
+      rootDir = './';
+    }
     let bookConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '../../resource/book_example.json')));
     bookConfig.title = name;
-    fs.writeFileSync(
-      path.join(dir, './book.json'),
-      JSON.stringify(bookConfig, null, 2)
-    );
-    fs.writeFileSync(
-      path.join(dir, './src/README.md'),
-      fs.readFileSync(path.join(__dirname, '../../resource/readme_example.md'))
-    );
-    fs.writeFileSync(
-      path.join(dir, './src/SUMMARY.md'),
-      fs.readFileSync(path.join(__dirname, '../../resource/summary_example.md'))
-    );
+    bookConfig.root = rootDir;
+
+    let bookJSON = path.join(dir, './book.json');
+    fs.exists(bookJSON, function (exists) {
+      !exists && fs.writeFile(bookJSON, JSON.stringify(bookConfig, null, 2));
+    });
+
+    let readme = path.join(dir, './src/README.md');
+    fs.exists(readme, function (exists) {
+      !exists && fs.writeFile(
+        readme,
+        fs.readFileSync(path.join(__dirname, '../../resource/readme_example.md'))
+      );
+    });
+    let summary = path.join(dir, './src/SUMMARY.md');
+    fs.exists(summary, function (exists) {
+      !exists && fs.writeFile(
+        summary,
+        fs.readFileSync(path.join(__dirname, '../../resource/summary_example.md'))
+      );
+    });
+
     let bookInfo = {
       name: obj.name,
       path: dir

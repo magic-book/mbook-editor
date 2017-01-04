@@ -206,13 +206,13 @@ class Editor extends UIBase {
       });
       // save file delay 3's
       if (self.intervalDelaySave) {
-        return; // clearTimeout(self.intervalDelaySave);
+        clearTimeout(self.intervalDelaySave);
       }
       self.intervalDelaySave = setTimeout(function () {
         self.intervalDelaySave = null;
         log.info('auto_save', self.currentFile.file);
         self.saveFile();
-      }, 3000);
+      }, 1000);
     });
 
     editor.on('scroll', function (cm) {
@@ -285,7 +285,11 @@ class Editor extends UIBase {
     }
     co(function* () {
       yield self.currentFile.save();
-      self.emit('save', self.currentFile.file, self.currentFile.value);
+      self.emit('save', {
+        file: self.currentFile.file,
+        value: self.currentFile.value,
+        title: self.currentFile.title
+      });
     }).catch(function (e) {
       log.error('save file error:', e.message);
     });

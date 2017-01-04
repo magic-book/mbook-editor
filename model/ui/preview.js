@@ -3,6 +3,8 @@ const marked = require('../../lib/marked');
 const UIBase = require('./ui_base');
 const log = require('../../lib/log');
 const path = require('path');
+const request = require('request');
+const qs = require('querystring');
 
 function resolvePath(base, file) {
   return path.join(path.dirname(base), file);
@@ -35,6 +37,7 @@ class Preview extends UIBase {
         return require('highlight.js').highlightAuto(code).value;
       }
     });
+    this.resRoot = resRoot;
     this.cnt = options.container.find('.inner');
     this.title = options.container.find('.title');
     this.outerCnt = options.container;
@@ -48,6 +51,26 @@ class Preview extends UIBase {
     let file = data.file;
     let title = data.title;
     let mdString = data.value;
+
+    let sock = path.join(__dirname, '../../run.sock');
+
+    setTimeout(function () {
+      request.get('http://unix:' + sock + ':/?' + qs.stringify({
+        resRoot: this.resRoot,
+        file: file,
+        md: mdString
+      }), function (err, data) {
+        if (err) {
+          log.error(err);
+        } else {
+          self.cnt.html(JSON.parse(data.body).data);
+          self.title.html(title);
+          self.buildMap();
+        }
+        log.info(err, data);
+      });
+    }, 0);
+    /*
     // TODO change mdString to html
     marked(this.resolveRes(file, mdString) || '', function (err, data) {
       if (err) {
@@ -57,6 +80,7 @@ class Preview extends UIBase {
       self.title.html(title);
       self.buildMap();
     });
+    */
   }
   buildMap() {
     let map = {};

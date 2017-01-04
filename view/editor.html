@@ -155,7 +155,7 @@
         display: block;
         color: #454545;
         padding: 0px 10px;
-        line-height: 200%;
+        line-height: 220%;
         text-decoration: none;
     }
     .treeview a:hover{
@@ -186,6 +186,40 @@
         background: #f8f8f8;
     }
 
+    .menu .git {
+        display: none;
+        position: fixed;
+        top: 100px;
+        left: 180px;
+        width: 600px;
+        background: #fff;
+        box-shadow:0 0 10px #666;
+        z-index: 100;
+    }
+    .menu .git .title {
+        background: #999;
+        color: #fff;
+        padding: 0px 10px;
+    }
+    .menu .git .title .close {
+        float: right;
+    }
+    .menu .git .opt {
+        background: #ccc;
+        color: #fff;
+        padding: 0px 10px;
+        line-height: 180%;
+    }
+    .menu .git .opt a {
+        text-decoration: none;
+        margin-right: 20px;
+    }
+    .menu .git .cnt {
+        padding: 10px;
+        height: 400px;
+        overflow: auto;
+    }
+
     .cm-s-base16-light span.cm-quote {
         color: #90a959;
     }
@@ -214,6 +248,9 @@
         line-height: 180%;
         font-family: 'menlo', 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
     }
+    .CodeMirror-wrap pre {
+        word-break: break-all;
+    }
     .cm-s-base16-light div.CodeMirror-selected {
         background:#ccc;
     }
@@ -236,12 +273,25 @@
             <span class="book-title" style="-webkit-app-region: no-drag;"></span>
         </div>
         <div class="tools">
-            <a id="git_tools" title="git tools" class="icon iconfont icon-gitbranch" href="" ></a>
+            <a id="git" title="git tools" class="icon iconfont icon-gitbranch" href="" ></a>
             <a id="explorer" title="explorer book dir" class="icon iconfont icon-ttpodicon" href="" ></a>
-            <a id="export_pdf" title="export pdf" class="icon iconfont icon-pdf1" href="" ></a>
+            <!-- <a id="export_pdf" title="export pdf" class="icon iconfont icon-pdf1" href="" ></a> -->
         </div>
         <div class="treeview"></div>
-
+        <div class="git">
+            <div class="title">
+                <a href="" class="close"><img src="./imgs/btn_close_hover.png" /></a>
+                git: <span class="git-url"></span>
+            </div>
+            <div class="opt">
+                <a action="status" href="">status</a>
+                <a action="pull" href="">pull</a>
+                <a action="commit" href="">commit</a>
+                <a action="tag" href="">tag</a>
+                <a action="push" href="">push</a>
+            </div>
+            <div class="cnt"></div>
+        </div>
     </div>
     <div class="editor" id="editor">
         <div class="toolbar" style="-webkit-app-region:drag;">

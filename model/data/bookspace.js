@@ -225,14 +225,14 @@ class Bookspace {
       !exists && fs.writeFile(bookJSON, JSON.stringify(bookConfig, null, 2));
     });
 
-    let readme = path.join(dir, './src/README.md');
+    let readme = path.join(dir, rootDir, './README.md');
     fs.exists(readme, function (exists) {
       !exists && fs.writeFile(
         readme,
         fs.readFileSync(path.join(__dirname, '../../resource/readme_example.md'))
       );
     });
-    let summary = path.join(dir, './src/SUMMARY.md');
+    let summary = path.join(dir, rootDir, './SUMMARY.md');
     fs.exists(summary, function (exists) {
       !exists && fs.writeFile(
         summary,

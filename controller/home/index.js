@@ -159,14 +159,14 @@ class Home extends BaseCtrl {
         if (/\.git$/.test(val)) {
           // git@git-service.com:$groupName/$projectName.git
           let git = simpleGit();
-          git.clone(val, self.bookspace.getRoot(), function (err) {
+          git.clone(val, path.join(self.bookspace.getRoot(), getGitDirName(val)), function (err) {
             if (err) {
               msg.show(err);
             } else {
               let bookInfo = self.bookspace.createBook({
                 name: getGitDirName(val)
               });
-              self.container.find('.bookspaces .book-opt').before(this.tplOpt.getBookspaceTpl(bookInfo));
+              self.container.find('.bookspaces .book-opt').before(self.tplOpt.getBookspaceTpl(bookInfo));
               self.modalbox.jqmHide();
               inp.val('');
             }
@@ -205,6 +205,10 @@ class Home extends BaseCtrl {
         }
         try {
           bookInfo = require(path.join(bookRoot, './book.json'));
+          self.bookspace.importBook({
+            name: bookInfo.title || 'Untitled',
+            path: bookRoot
+          });
         } catch (e) {
           if (e.code === 'MODULE_NOT_FOUND') {
             self.bookspace.createBook({
@@ -212,23 +216,21 @@ class Home extends BaseCtrl {
               path: bookRoot,
               empty: isEmptyDir(bookRoot)
             });
-            bookInfo = require(path.join(bookRoot, './book.json'));
+            bookInfo = {title: 'new Book'};
           } else {
             log.error('loading book.json failed', e.code, e.message);
             return;
           }
         }
-        self.bookspace.importBook({
-          name: bookInfo.title || 'Untitled',
-          path: bookRoot
-        });
       }
-      bookRoot && this.emit('scene', {
-        scene: 'editor',
-        options: {
-          bookRoot: bookRoot
-        }
-      });
+      bookRoot && setTimeout(function () {
+        self.emit('scene', {
+          scene: 'editor',
+          options: {
+            bookRoot: bookRoot
+          }
+        });
+      }, 20);
     });
     /**
      * 删除book

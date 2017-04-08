@@ -18,6 +18,7 @@ const app = electron.app;  // Module to control application life.
 const BrowserWindow = electron.BrowserWindow;
 const ipcMain = electron.ipcMain;
 const os = require('os');
+const sockPath = path.join(os.tmpdir(), 'mbook.sock');
 const pkg = require('./package.json');
 const clipboard = electron.clipboard;
 
@@ -124,7 +125,7 @@ electron.crashReporter.start({
 });
 
 try {
-  fs.unlinkSync(path.join(__dirname, 'run.sock'));
+  fs.unlinkSync(sockPath);
 } catch (e) {
 
 }
@@ -327,5 +328,5 @@ app.on('ready', function () {
       res.end(JSON.stringify({data: data}));
     });
   });
-  serv.listen(path.join(__dirname, 'run.sock'));
+  serv.listen(43210);
 });

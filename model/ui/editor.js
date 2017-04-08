@@ -165,7 +165,7 @@ class Editor extends UIBase {
     this.editCnt = editorContainer.find('.editor-cnt');
 
     var editor = new CodeMirror(this.editCnt[0], {
-      lineNumbers: false,
+      lineNumbers: true,
       lineWrapping: true,
       lineSeparator: '\n',
       mode: 'gfm',
@@ -216,7 +216,18 @@ class Editor extends UIBase {
     });
 
     editor.on('scroll', function (cm) {
-      let top = cm.display.scroller.scrollTop;
+      let scroller = cm.display.scroller;
+      let top = scroller.scrollTop;
+      let height = scroller.clientHeight;
+      let scrollHeight = scroller.scrollHeight;
+
+      console.log('>>>', top + height, scrollHeight);
+      if (top + height === scrollHeight) {
+        console.log('>>> end');
+        // reach the end of the article
+        top = scrollHeight - 5;
+      }
+
       let lineNum = cm.lineAtHeight(top, 'local');
       // log.debug('editor scroll to line:', lineNum, 'height', top);
       self.emit('scroll', {

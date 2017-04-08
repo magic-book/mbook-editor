@@ -2,7 +2,7 @@
   "name": "magic-book",
   "description": "a book editor",
   "author": "fish",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "main.js",
   "scripts": {
     "build": "./node_modules/.bin/electron-rebuild",
@@ -22,10 +22,9 @@
     "json-socket": "^0.2.1",
     "litelog": "1.2.3",
     "lodash": "^4.17.2",
-    "marked": "^0.3.5",
     "mmmagic": "^0.4.5",
     "request": "^2.75.0",
-    "simple-git": "^1.65.0",
+    "simple-git": "^1.70.0",
     "xfs": "^0.2.1"
   },
   "build": {

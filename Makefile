@@ -34,7 +34,7 @@ install: npm-install rebuild
 
 package-clean:
 	@rm -rf release
-        @rm -rf run.sock
+	@rm -rf run.sock
 	@rm -rf node_modules/codemirror/src
 	@ls node_modules/codemirror/theme/ | grep -v base16-light | xargs -I {} rm node_modules/codemirror/theme/{}
 	@ls node_modules/codemirror/mode/ | grep -v gfm | \
@@ -71,7 +71,7 @@ release: package-clean
 		--ignore=node_modules/should \
 		--ignore=node_modules/electron
 	@rm -rf config/config.js
-	#@bin/packer.sh
+	@bin/packer.sh
 
 pack-mac:
 	@if [ ! -d "bin/create-dmg" ]; then git clone git@github.com:andreyvit/create-dmg.git bin/create-dmg; fi
@@ -83,7 +83,7 @@ pack-mac:
 		release/mbook.dmg release/MagicBook-darwin-x64
 
 rebuild:
-	./bin/node_modules/.bin/electron-rebuild -m=$(shell pwd)/node_modules -d=https://gh-contractor-zcbenz.cnpmjs.org/atom-shell/dist  -f -w mmmagic
+	./bin/node_modules/.bin/electron-rebuild -m ./ -d=https://npm.taobao.org/mirrors/atom-shell/  -f -w mmmagic
 	# @./node_modules/.bin/electron-rebuild -f -w mmmagic
 
 test:

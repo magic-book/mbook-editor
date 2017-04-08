@@ -81,7 +81,7 @@
         position: relative;
         line-height: 180%;
         background: #fefefe;
-        padding: 10px;
+        padding: 10px 26px;
         flex: 1;
     }
     .preview .title {
@@ -98,6 +98,20 @@
         white-space: pre-wrap;
         word-wrap: break-word;
         word-break: break-all;
+    }
+    .preview table {
+        min-width: 450px;
+        border-collapse: collapse;
+    }
+    .preview td, .preview th {
+        border: 1px solid #dedede;
+        padding: 5px 10px;
+    }
+    .preview th {
+        background-color:#eee;
+    }
+    .preview tr:nth-child(2n) {
+        background-color:#f3f3f3;
     }
     .preview blockquote {
         margin: 5px;
@@ -241,7 +255,11 @@
         line-height: 180%;
         background: transparent;
         font-family: 'menlo', 'Helvetica', 'HanHei SC', 'PingFang SC', 'Helvetica Neue', 'STHeitiSC-Light', 'Arial', sans-serif;
-        padding: 0px 10px;
+        padding: 0px 24px;
+    }
+    .CodeMirror-scroll {
+        padding-bottom: 50px;
+        margin-right: -34px;
     }
     .cm-s-base16-light .CodeMirror pre {
         padding: 0px 10px;

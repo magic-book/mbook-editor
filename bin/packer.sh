@@ -23,9 +23,9 @@ function pack_macox {
   if [ ! -d "bin/create-dmg" ]; then
     git clone git@github.com:andreyvit/create-dmg.git bin/create-dmg
   fi
-
+  local version=`cat ./package.json | grep version | awk -F '"' '{print $4}'`
   bin/create-dmg/create-dmg \
-    --volname "MagicBook" --window-pos 200 120 --window-size 800 400 --app-drop-link 600 185 release/mbook.dmg release/MagicBook-$PLATFORM-$ARCH
+    --volname "MagicBook" --window-pos 200 120 --window-size 800 400 --app-drop-link 600 185 release/mbook_${version}.dmg release/MagicBook-$PLATFORM-$ARCH
 }
 
 

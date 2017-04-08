@@ -22,10 +22,11 @@ class Git extends UIBase {
     });
     this.container.find('.opt').on('click', 'a', function () {
       let type = this.getAttribute('action');
-      switch(type) {
+      self.container.find('.cnt').html('loading...');
+      switch (type) {
         case 'status':
           self.git.status(function (err, data) {
-            console.log(data);
+            // console.log(data);
             let html = [];
             html.push('<h3> current:' + data.current + '</h3>');
             html.push('file changes:');
@@ -60,11 +61,16 @@ class Git extends UIBase {
           break;
         case 'pull':
           self.git.pull('origin', 'master', {}, function (err, data) {
-            console.log(err, data);
+            // console.log(err, data);
             if (err) {
               self.container.find('.cnt').html(err);
             } else {
               console.log(data);
+              self.container.find('.cnt').html(`
+                <p> changes: ${data.summary.changes}</p>
+                <p> deletions: ${data.summary.deletions} </p>
+                <p> insertions: ${data.summary.insertions} </p>
+              `);
             }
           });
           break;

@@ -1,10 +1,10 @@
 'use strict';
 
-const TestMod = require('../../lib/book');
+// const TestMod = require('.././lib/book');
 const path = require('path');
 const should = require('should');
 
-const testBook = new TestMod(path.join(__dirname, '../mock_book'));
+// const testBook = new TestMod(path.join(__dirname, '../mock_book'));
 
 describe('lib/book', function () {
 
@@ -12,7 +12,7 @@ describe('lib/book', function () {
 
   });
 
-
+  /*
   describe('list book', function () {
     it('should list the book base', function (done) {
       testBook.getMenu(function (err, result) {
@@ -27,10 +27,9 @@ describe('lib/book', function () {
       });
     });
   });
-
   describe('delete book', function () {
 
   });
-
+  */
 
 });

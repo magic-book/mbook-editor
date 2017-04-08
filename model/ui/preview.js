@@ -5,6 +5,8 @@ const log = require('../../lib/log');
 const path = require('path');
 const request = require('request');
 const qs = require('querystring');
+const os = require('os');
+const sockPath = path.join(os.tmpdir(), 'mbook.sock');
 
 function resolvePath(base, file) {
   return path.join(path.dirname(base), file);
@@ -52,11 +54,10 @@ class Preview extends UIBase {
     let title = data.title;
     let mdString = data.value;
 
-    let sock = path.join(__dirname, '../../run.sock');
-
     setTimeout(function () {
-      request.get('http://unix:' + sock + ':/?' + qs.stringify({
-        resRoot: this.resRoot,
+      // request.get('http://unix:' + sockPath + ':/?' + qs.stringify({
+      request.get('http://127.0.0.1:43210/?' + qs.stringify({
+        resRoot: self.resRoot,
         file: file,
         md: mdString
       }), function (err, data) {
@@ -84,9 +85,15 @@ class Preview extends UIBase {
   }
   buildMap() {
     let map = {};
-    this.cnt.find('line').each(function () {
+    this.cnt.find('line, tr').each(function () {
       let tmp = this.getAttribute('num');
-      map[tmp] = this.offsetTop;
+      let offset = this.offsetTop;
+      let node = this;
+      while (node.offsetParent) {
+        node = node.offsetParent;
+        offset += node.offsetTop;
+      }
+      map[tmp] = offset;
     });
     this.map = map;
   }

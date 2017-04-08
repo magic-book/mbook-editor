@@ -74,6 +74,18 @@ function checkFormat(contentTypes) {
         }
       };
     /**
+     * 富文本类型
+     */
+    case contentTypes.indexOf(allMimeTypes.rtf) > -1: {
+      let rtf = clipboard.readRTF();
+      return {
+        name: 'pasteRTF',
+        cfg: {
+          rtf: rtf
+        }
+      };
+    }
+    /**
      * 符合文本类型
      * 1. 本地图片地址， 目前只做这部分判断
      * 2. 网页图片地址
@@ -121,18 +133,6 @@ function checkFormat(contentTypes) {
           }
         };
       }
-    }
-    /**
-     * 富文本类型
-     */
-    case contentTypes.indexOf(allMimeTypes.rtf) > -1: {
-      let rtf = clipboard.readRTF();
-      return {
-        name: 'pasteRTF',
-        cfg: {
-          rtf: rtf
-        }
-      };
     }
     default:
       break;
@@ -200,7 +200,11 @@ const pasteFuncObj = {
         break;
     }
     return result;
+  },/*
+  parseRtf(cfg) {
+
   }
+  */
 };
 
 /**

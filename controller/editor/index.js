@@ -147,7 +147,7 @@ class AppEditor extends BaseCtrl {
     });
 
     this.editor.on('save', function (data) {
-      console.log('file saved', data);
+      log.debug('file saved', data);
       preview.render(data);
     });
 

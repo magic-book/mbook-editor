@@ -300,7 +300,11 @@ app.on('ready', function () {
   });
 
   function resolvePath(base, file) {
-    return path.join(path.dirname(base), file);
+    if (file.startsWith('/')) {
+      return file;
+    } else {
+      return path.join(path.dirname(base), file);
+    }
   }
 
   function resolveRes(file, md) {

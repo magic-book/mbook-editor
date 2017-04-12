@@ -112,6 +112,7 @@ class Menu extends UIBase {
       self.dragee.inited = false;
       self.dragee.origin = node;
 
+      /** 移动边界 **/
       let bound = {
         top: parentPos.top,
         bottom: parentPos.top + parentHeight,
@@ -119,11 +120,12 @@ class Menu extends UIBase {
         right: parentPos.left + $(node).width(),
         minX: parentPos.left,
         minY: parentPos.top - $(node).height(),
-        maxX: parentPos.left + (parentWidth - $(node).width()),
+        maxX: parentPos.left,
         maxY: parentPos.top + parentHeight
       };
       $(dragee).css({
         position: 'absolute',
+        lineHeight: '220%',
         zIndex: 100,
         backgroundColor: '#3f0',
         left: pos.left + 'px',
@@ -392,6 +394,7 @@ class Menu extends UIBase {
 
     let list = self.cnt.find('a');
 
+    // 约束上下左右的极值
     if (bound) {
       if (left < bound.minX) {
         left = bound.minX;
@@ -405,6 +408,7 @@ class Menu extends UIBase {
         top = bound.maxY;
       }
     }
+
     d.css({
       left: left,
       top: top
@@ -414,7 +418,7 @@ class Menu extends UIBase {
     let origin = d.origin;
     let h = $(d).height();
     let offsetY = e.pageY - bound.top - offset.y;
-    let offsetN = Math.floor(offsetY / h);
+    let offsetN = Math.floor(offsetY / h); // 计算偏移节点index
     // console.log('::', offsetY, h, offsetN);
 
     if (offsetN < 0) {

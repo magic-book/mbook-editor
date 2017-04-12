@@ -244,7 +244,7 @@ class ClipBoard extends Events {
   }
   paste(e) {
     let self = this;
-    let callback = res => {
+    let callback = (res) => {
       co(function* () {
         // save file, get abs path
         let imagePath = yield self.book.res.saveFile(res.name, res.buffer);

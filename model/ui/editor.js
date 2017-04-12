@@ -87,14 +87,14 @@ class File extends UIBase {
     if (!this.file) {
       log.info('empty file');
       this.value = '';
-      this.editor.setOption('readOnly', true);
+      this.editor.setOption('readOnly', 'nocursor');
       setTimeout(function () {
         self.loaded = true;
         self.emit('load');
       }, 0);
       return;
     }
-    this.editor.setOption('readOnly', this.book.readOnly);
+    this.editor.setOption('readOnly', this.book.readOnly ? 'nocursor' : false);
 
     co(function *() {
       let v = yield self.book.loadFile(self.file);
@@ -165,18 +165,20 @@ class Editor extends UIBase {
     this.editCnt = editorContainer.find('.editor-cnt');
 
     var editor = new CodeMirror(this.editCnt[0], {
-      lineNumbers: true,
+      lineNumbers: false,
       lineWrapping: true,
       lineSeparator: '\n',
       mode: 'gfm',
       theme: 'base16-light',
       indentUnit: 2,
+      cursorHeight: 0.8,
       tabSize: 2,
       styleActiveLine: true,
       showCursorWhenSelecting: true,
       matchBrackets: true,
-      readOnly: true,
+      readOnly: 'nocursor',
       viewportMargin: 20,
+      value: 'hi, 在左侧目录树创建章节，点击章节名开始编辑, :)',
       extraKeys: {
         'Cmd-S': function () {
           log.debug('[hot-key]save file');
@@ -221,9 +223,7 @@ class Editor extends UIBase {
       let height = scroller.clientHeight;
       let scrollHeight = scroller.scrollHeight;
 
-      console.log('>>>', top + height, scrollHeight);
       if (top + height === scrollHeight) {
-        console.log('>>> end');
         // reach the end of the article
         top = scrollHeight - 5;
       }
@@ -305,7 +305,6 @@ class Editor extends UIBase {
       log.error('save file error:', e.message);
     });
   }
-
   insertCurrent(type, content) {
     if (!this.currentFile) {
       return;
@@ -330,14 +329,19 @@ class Editor extends UIBase {
   }
   resolvePathToRelative(file) {
     let curFileName = this.currentFile.file;
-    //  /abc/test.md
-    let tmp = curFileName.split(path.sep);
-    let depth = tmp.length - 2;
-    let reltoRoot = [];
-    for (let i = 0; i < depth; i++) {
-      reltoRoot.push('..');
+
+    if (!curFileName.startsWith('/')) {
+      curFileName = '/' + curFileName;
     }
-    return path.join(reltoRoot.join(path.sep), file);
+    let tmpDir = path.dirname(curFileName);
+    let reltoRoot = [];
+    while (tmpDir !== '/') {
+      reltoRoot.push('..');
+      tmpDir = path.dirname(tmpDir);
+    }
+    let res = path.join(reltoRoot.join('/'), file);
+    // console.log('>>>> file:', file, 'base:', curFileName, 'final:', res);
+    return res;
   }
 }
 

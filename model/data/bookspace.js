@@ -8,18 +8,6 @@ const log = require('../../lib/log');
 
 class Bookspace {
   constructor() {
-    /*
-    if (!fs.existsSync(config.bookspaceConfig)) {
-      fs.writeFileSync(
-        config.bookspaceConfig,
-        fs.readFileSync(path.join(__dirname, '../../resource/bookspace_example.json'))
-      );
-    }
-    */
-    /**
-     * [bookspaceConfigPath description]
-     * @type {[type]}
-     */
     this.config = config.bookspace;
     this.books = this.config.books;
     this.history = this.config.history;
@@ -170,7 +158,6 @@ class Bookspace {
 
   remove(bookPath) {
     let books = this.books;
-
     books.forEach(function (book, i, a) {
       if (book.path === bookPath) {
         a.splice(i, 1);

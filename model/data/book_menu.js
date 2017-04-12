@@ -2,7 +2,7 @@
 
 const fsp = require('fs-promise');
 const path = require('path');
-const marked = require('marked');
+const marked = require('../../lib/marked');
 
 const EventEmitter = require('events').EventEmitter;
 

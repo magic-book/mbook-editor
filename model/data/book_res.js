@@ -28,7 +28,7 @@ class BookResource extends Events {
     let filePath = path.join(this.root, fileName);
     yield fsp.mkdirs(path.dirname(filePath));
     yield fsp.writeFile(filePath, data);
-    return '_res/' + fileName;
+    return '/_res/' + fileName;
   }
   * genFileName(filename) {
     let ext = path.extname(filename);

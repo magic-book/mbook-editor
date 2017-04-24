@@ -13,5 +13,6 @@
     "splitter",
     "-theme-default",
     "theme-mbook"
-  ]
+  ],
+  "theme": "aliyun"
 }

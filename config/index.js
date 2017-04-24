@@ -6,10 +6,15 @@
  */
 'use strict';
 const os = require('os');
-const fs = require('fs');
+const fs = require('xfs');
 const path = require('path');
 const _ = require('lodash');
-const userConfigPath = path.join(os.homedir(), '.mbook.json');
+
+const userConfigDir = path.join(os.homedir(), '.mbook');
+const userConfigPathOld = path.join(os.homedir(), '.mbook.json');
+const userConfigPath = path.join(os.homedir(), '.mbook/config.json');
+
+fs.sync().mkdir(userConfigDir);
 
 let defaultConfig = {
   debug: true,
@@ -33,6 +38,19 @@ let defaultConfig = {
     }
   }
 };
+
+let userConfigOld = {};
+try {
+  userConfigOld = require(userConfigPathOld);
+  fs.sync().rm(userConfigPathOld);
+  process.nextTick(function () {
+    config.save && config.save();
+  });
+} catch (e) {
+  if (e.code !== 'MODULE_NOT_FOUND') {
+    console.error('loading app config failed', e.message); // eslint-disable-line
+  }
+}
 
 
 let userConfig = {};
@@ -71,6 +89,6 @@ Object.defineProperties(config, {
   }
 });
 
-config = _.merge(config, defaultConfig, envConfig, userConfig);
+config = _.merge(config, defaultConfig, envConfig, userConfigOld, userConfig);
 
 module.exports = config;

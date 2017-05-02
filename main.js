@@ -31,7 +31,7 @@ const versions = [
   'version.chrome: ' + process.versions.chrome,
   '=============='
 ];
-log.info('versions:', versions.join('\n'));
+log.debug('versions:', versions.join('\n'));
 
 function checkAbsPath(p) {
   let platform = os.platform();
@@ -127,7 +127,7 @@ electron.crashReporter.start({
 try {
   fs.unlinkSync(sockPath);
 } catch (e) {
-
+    // do nothing
 }
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the javascript object is GCed.
@@ -269,6 +269,7 @@ app.on('ready', function () {
   //   this.executeJavaScript('', function () {});
   // });
   //
+  /*
   const http = require('http');
   const URL = require('url');
   const marked = require('./lib/marked.js');
@@ -333,4 +334,5 @@ app.on('ready', function () {
     });
   });
   serv.listen(43210);
+  */
 });

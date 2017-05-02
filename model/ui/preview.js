@@ -5,8 +5,9 @@ const log = require('../../lib/log');
 const path = require('path');
 const request = require('request');
 const qs = require('querystring');
+const fs = require('fs');
 const os = require('os');
-const sockPath = path.join(os.tmpdir(), 'mbook.sock');
+const webworker = require('webworkify');
 
 function resolvePath(base, file) {
   return path.join(path.dirname(base), file);
@@ -44,6 +45,26 @@ class Preview extends UIBase {
     this.title = options.container.find('.title');
     this.outerCnt = options.container;
     this.currentLine = 0;
+
+    // this.worker = webworker(require('./webworker_render.js'));
+
+    var src = fs.readFileSync(require.resolve('./webworker_render.js')).toString();
+    var blob = new Blob([src], {type: 'text/javascript'});
+    var workerUrl = URL.createObjectURL(blob);
+    var worker = new Worker(workerUrl);
+    var self = this;
+    // worker.objectURL = workerUrl;
+    worker.onmessage = function (msg) {
+      msg = msg.data;
+      if (msg.error) {
+        return log.error(msg.error);
+      }
+      var data = msg.data;
+      self.cnt.html(data.body);
+      self.title.html(data.title);
+      self.buildMap();
+    };
+    this.worker = worker;
   }
   /**
    * render markstring
@@ -54,6 +75,13 @@ class Preview extends UIBase {
     let title = data.title;
     let mdString = data.value;
 
+    this.worker.postMessage({
+      resRoot: self.resRoot,
+      file: file,
+      md: mdString,
+      title: title
+    });
+    /*
     setTimeout(function () {
       // request.get('http://unix:' + sockPath + ':/?' + qs.stringify({
       request.get('http://127.0.0.1:43210/?' + qs.stringify({
@@ -71,6 +99,7 @@ class Preview extends UIBase {
         log.info(err, data);
       });
     }, 0);
+    */
     /*
     // TODO change mdString to html
     marked(this.resolveRes(file, mdString) || '', function (err, data) {

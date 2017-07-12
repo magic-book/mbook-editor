@@ -239,7 +239,6 @@ const pasteFuncObj = {
 class ClipBoard extends Events {
   constructor(options) {
     super();
-    this.magic = options.magic;
     this.book = options.book;
   }
   paste(e) {
@@ -351,7 +350,6 @@ class ClipBoard extends Events {
 
   destroy() {
     this.book = null;
-    this.magic = null;
   }
 }
 

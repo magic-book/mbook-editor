@@ -22,7 +22,6 @@
     "json-socket": "^0.2.1",
     "litelog": "1.2.3",
     "lodash": "^4.17.2",
-    "mmmagic": "^0.4.5",
     "request": "^2.75.0",
     "simple-git": "^1.70.0",
     "webworkify": "^1.4.0",

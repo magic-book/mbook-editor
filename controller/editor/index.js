@@ -4,8 +4,6 @@ const $ = require('jquery');
 const co = require('co');
 const fs = require('xfs');
 const path = require('path');
-const mmm = require('mmmagic');
-const Magic = mmm.Magic;
 const view = require('../../lib/view');
 const log = require('../../lib/log');
 const ipcRenderer = require('electron').ipcRenderer;
@@ -91,13 +89,10 @@ class AppEditor extends BaseCtrl {
     this.editor = editor;
     log.info('init book editor');
 
-    let magic = new Magic(mmm.MAGIC_MIME_TYPE);
-    this.magic = magic;
 
     let clipboard = new ClipBoard({
       book: book,
       editor: editor,
-      magic: magic
     });
     this.clipboard = clipboard;
     /**

@@ -4,6 +4,7 @@ const $ = require('jquery');
 const co = require('co');
 const fs = require('xfs');
 const path = require('path');
+
 const view = require('../../lib/view');
 const log = require('../../lib/log');
 const ipcRenderer = require('electron').ipcRenderer;
@@ -89,10 +90,9 @@ class AppEditor extends BaseCtrl {
     this.editor = editor;
     log.info('init book editor');
 
-
     let clipboard = new ClipBoard({
       book: book,
-      editor: editor,
+      editor: editor
     });
     this.clipboard = clipboard;
     /**

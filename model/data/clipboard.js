@@ -57,6 +57,7 @@ function checkImageFromDingDing(html) {
 function checkFormat(contentTypes) {
   contentTypes = contentTypes || clipboard.availableFormats();
 
+console.log('>>>>', contentTypes);
   switch (true) {
     /**
      * 符合图片类型，直接粘贴图片内容
@@ -200,11 +201,7 @@ const pasteFuncObj = {
         break;
     }
     return result;
-  },/*
-  parseRtf(cfg) {
-
   }
-  */
 };
 
 /**
@@ -242,6 +239,31 @@ class ClipBoard extends Events {
     this.book = options.book;
   }
   paste(e) {
+    /*
+    let items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      let item = items[i];
+      switch (item.kind) {
+        case 'file':
+          switch (item.type) {
+            case 'image/png':
+            case 'image/jpb':
+              // let file = item.getAsFile();
+              break;
+            default:
+              break;
+          }
+          break;
+        case 'string':
+
+          break;
+        default:
+          break;
+      }
+    }
+    */
+
+
     let self = this;
     let callback = (res) => {
       co(function* () {

@@ -11,10 +11,15 @@ class BookResource extends Events {
    * [constructor description]
    * @param  {Object} options
    *         - root {String} book abs root
+   *         - resDirName {String}
    */
   constructor(options) {
     super();
-    this.root = path.join(options.root, '_res');
+    if (!options.resDirName) {
+      options.resDirName = '_res';
+    }
+    this.resDirName = options.resDirName;
+    this.root = path.join(options.root, options.resDirName);
   }
   /**
    * 保存文件
@@ -28,7 +33,7 @@ class BookResource extends Events {
     let filePath = path.join(this.root, fileName);
     yield fsp.mkdirs(path.dirname(filePath));
     yield fsp.writeFile(filePath, data);
-    return '/_res/' + fileName;
+    return '/' + this.resDirName + '/' + fileName;
   }
   * genFileName(filename) {
     let ext = path.extname(filename);

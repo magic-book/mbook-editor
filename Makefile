@@ -27,10 +27,10 @@ else
 endif
 
 npm-install:
-	@npm install
-	@cd bin && tnpm install
+	@npm install --registry=https://registry.npm.taobao.org
+	@cd bin && npm install --registry=https://registry.npm.taobao.org
 
-install: npm-install rebuild
+install: npm-install
 
 package-clean:
 	@rm -rf release
@@ -83,7 +83,7 @@ pack-mac:
 		release/mbook.dmg release/MagicBook-darwin-x64
 
 rebuild:
-	./bin/node_modules/.bin/electron-rebuild -m ./ -d=https://npm.taobao.org/mirrors/atom-shell/  -f -w mmmagic
+	# ./bin/node_modules/.bin/electron-rebuild -m ./ -d=https://npm.taobao.org/mirrors/atom-shell/  -f -w mmmagic
 	# @./node_modules/.bin/electron-rebuild -f -w mmmagic
 
 test:

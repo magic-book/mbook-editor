@@ -168,6 +168,7 @@ class Editor extends UIBase {
       lineNumbers: false,
       lineWrapping: true,
       lineSeparator: '\n',
+      cursorScrollMargin: 0,
       mode: 'gfm',
       theme: 'base16-light',
       indentUnit: 2,
@@ -193,7 +194,11 @@ class Editor extends UIBase {
         },
         'Enter': 'newlineAndIndentContinueMarkdownList',
         'Home': 'goLineLeft',
-        'End': 'goLineRight'
+        'End': 'goLineRight',
+        'Tab': function (cm) {
+          var spaces = Array(cm.getOption('indentUnit') + 1).join(' ');
+          cm.replaceSelection(spaces);
+        }
       }
     });
     editor.on('change', function () {
@@ -328,6 +333,7 @@ class Editor extends UIBase {
     this.editor.refresh();
   }
   resolvePathToRelative(file) {
+    // /res_/1516644030109_1.png base: /README.md final: /res_/1516644030109_1.png
     let curFileName = this.currentFile.file;
 
     if (!curFileName.startsWith('/')) {
@@ -339,8 +345,10 @@ class Editor extends UIBase {
       reltoRoot.push('..');
       tmpDir = path.dirname(tmpDir);
     }
+    if (!reltoRoot.length) {
+      reltoRoot.push('.');
+    }
     let res = path.join(reltoRoot.join('/'), file);
-    // console.log('>>>> file:', file, 'base:', curFileName, 'final:', res);
     return res;
   }
 }

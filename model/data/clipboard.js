@@ -57,7 +57,6 @@ function checkImageFromDingDing(html) {
 function checkFormat(contentTypes) {
   contentTypes = contentTypes || clipboard.availableFormats();
 
-console.log('>>>>', contentTypes);
   switch (true) {
     /**
      * 符合图片类型，直接粘贴图片内容

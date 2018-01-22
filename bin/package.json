@@ -2,7 +2,6 @@
   "dependencies": {
     "browserify": "^14.3.0",
     "electron-packager": "8.3.0",
-    "electron-rebuild": "1.5.7",
     "mocha": "^3.1.2",
     "should": "^11.1.1"
   }

@@ -33,7 +33,8 @@ class Book extends Events {
      * @type {BookRes}
      */
     this.res = new BookRes({
-      root: this.src
+      root: this.src,
+      resDirName: this.bookInfo.resDirName
     });
   }
   loadBookInfo() {

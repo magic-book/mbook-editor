@@ -114,13 +114,14 @@ class Preview extends UIBase {
   }
   buildMap() {
     let map = {};
-    this.cnt.find('line, tr').each(function () {
+    let cnt = this.cnt;
+    cnt.find('line, tr').each(function () {
       let tmp = this.getAttribute('num');
-      let offset = this.offsetTop;
+      let offset = 0;
       let node = this;
-      while (node.offsetParent) {
-        node = node.offsetParent;
+      while (node && node !== cnt[0]) {
         offset += node.offsetTop;
+        node = node.offsetParent;
       }
       map[tmp] = offset;
     });
